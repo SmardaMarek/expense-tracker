@@ -36,17 +36,20 @@ Goal: record money by hand and see a basic monthly total.
 - Decided: an account with transactions is archived, not deleted. The delete guard is added in
   1.3, when transactions exist.
 
-### 1.2 Categories 🔜
-- A default Czech category set for expenses and incomes, created on first run.
-- Add, rename, archive categories. Archived categories stay on old transactions.
-- **Done when:** every transaction can be assigned a category and the list is editable.
+### 1.2 Categories ✅
+- Categories page with two groups, expenses and income; flat list, no subcategories.
+- While the list is empty, a button adds a default Czech set (`DefaultCategories`).
+- Add, rename, archive, restore and delete. Names are unique per type, ignoring letter case.
+  The type is fixed once created.
 
-### 1.3 Transactions ⏳
+### 1.3 Transactions 🔜
 - Data model for all later phases: account, date, amount (haléře, signed), type
   (income / expense / transfer), counterparty name and account, variable symbol, message,
   category, source (manual / import), note.
 - Month view with filters (account, owner, type, category); add, edit, delete.
-- Block deleting a bank account that has transactions (offer archiving instead).
+- Block deleting a bank account or category that has transactions (offer archiving instead).
+- A transaction's category must match its type (expense category for expenses, income category
+  for income); transfers have no category.
 - **Done when:** a month of transactions can be entered by hand and corrected.
 
 ### 1.4 Basic monthly summary ⏳

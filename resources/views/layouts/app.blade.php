@@ -13,6 +13,7 @@
             <nav class="flex items-center gap-4 text-sm" aria-label="{{ __('Main navigation') }}">
                 <x-ui.nav-link route="dashboard">{{ __('Dashboard') }}</x-ui.nav-link>
                 <x-ui.nav-link route="accounts">{{ __('Bank accounts') }}</x-ui.nav-link>
+                <x-ui.nav-link route="categories">{{ __('Categories') }}</x-ui.nav-link>
                 <x-ui.nav-link route="settings">{{ __('Settings') }}</x-ui.nav-link>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
