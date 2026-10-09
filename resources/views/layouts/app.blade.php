@@ -8,10 +8,11 @@
 </head>
 <body class="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
     <header class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+        <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
             <a href="{{ route('dashboard') }}" class="font-semibold text-slate-800">{{ config('app.name') }}</a>
             <nav class="flex items-center gap-4 text-sm" aria-label="{{ __('Main navigation') }}">
                 <x-ui.nav-link route="dashboard">{{ __('Dashboard') }}</x-ui.nav-link>
+                <x-ui.nav-link route="transactions">{{ __('Transactions') }}</x-ui.nav-link>
                 <x-ui.nav-link route="accounts">{{ __('Bank accounts') }}</x-ui.nav-link>
                 <x-ui.nav-link route="categories">{{ __('Categories') }}</x-ui.nav-link>
                 <x-ui.nav-link route="settings">{{ __('Settings') }}</x-ui.nav-link>
@@ -22,7 +23,7 @@
             </nav>
         </div>
     </header>
-    <main class="mx-auto max-w-5xl px-4 py-8">
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {{ $slot }}
     </main>
 </body>

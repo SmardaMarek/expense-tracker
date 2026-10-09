@@ -103,7 +103,15 @@ class BankAccounts extends Component
 
     public function delete(int $id): void
     {
-        BankAccount::query()->findOrFail($id)->delete();
+        $account = BankAccount::query()->findOrFail($id);
+
+        if ($account->transactions()->exists()) {
+            session()->flash('error', __('This account has transactions, so it cannot be deleted. Archive it instead.'));
+
+            return;
+        }
+
+        $account->delete();
 
         if ($this->editing_id === $id) {
             $this->closeForm();

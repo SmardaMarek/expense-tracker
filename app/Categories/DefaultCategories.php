@@ -41,21 +41,41 @@ final class DefaultCategories
         'Other income',
     ];
 
-    public function createIfNone(): int
+    public const TRANSFERS = [
+        'Contribution to the shared account',
+        'To savings',
+        'From savings',
+        'Other transfers',
+    ];
+
+    /**
+     * @return list<string>
+     */
+    public static function namesFor(CategoryType $type): array
     {
-        if (Category::query()->exists()) {
+        return match ($type) {
+            CategoryType::Expense => self::EXPENSES,
+            CategoryType::Income => self::INCOME,
+            CategoryType::Transfer => self::TRANSFERS,
+        };
+    }
+
+    public function createForEmptyGroups(): int
+    {
+        return DB::transaction(fn (): int => array_sum(array_map(
+            fn (CategoryType $type): int => $this->createIfGroupEmpty($type),
+            CategoryType::cases(),
+        )));
+    }
+
+    public function createIfGroupEmpty(CategoryType $type): int
+    {
+        if (Category::query()->ofType($type)->exists()) {
             return 0;
         }
 
-        return DB::transaction(fn (): int => $this->createAll(CategoryType::Expense, self::EXPENSES)
-            + $this->createAll(CategoryType::Income, self::INCOME));
-    }
+        $names = self::namesFor($type);
 
-    /**
-     * @param  list<string>  $names
-     */
-    private function createAll(CategoryType $type, array $names): int
-    {
         foreach ($names as $name) {
             Category::query()->create(['type' => $type, 'name' => __($name)]);
         }

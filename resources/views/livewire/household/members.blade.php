@@ -3,7 +3,7 @@
     <p class="mt-1 text-sm text-slate-600">{{ __('The people who own the bank accounts. Accounts can also be shared by both.') }}</p>
 
     @if (session('members_status'))
-        <p class="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">{{ session('members_status') }}</p>
+        <x-ui.alert class="mt-4">{{ session('members_status') }}</x-ui.alert>
     @endif
 
     <form wire:submit="save" class="mt-6 space-y-4">

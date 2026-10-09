@@ -7,6 +7,7 @@ namespace Tests\Feature\BankAccounts;
 use App\Livewire\BankAccounts;
 use App\Models\BankAccount;
 use App\Models\Member;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -38,6 +39,21 @@ class BankAccountsTest extends TestCase
         $response->assertOk();
         $response->assertSeeInOrder(['Osobní účet', 'Marek']);
         $response->assertSeeInOrder(['Společný účet', 'Společný']);
+    }
+
+    public function test_row_actions_are_icon_buttons_with_accessible_labels(): void
+    {
+        $user = User::factory()->create();
+        BankAccount::factory()->create();
+        BankAccount::factory()->archived()->create();
+
+        $response = $this->actingAs($user)->get(route('accounts'));
+
+        $response->assertSee('aria-label="Upravit"', false);
+        $response->assertSee('aria-label="Archivovat"', false);
+        $response->assertSee('aria-label="Obnovit"', false);
+        $response->assertSee('aria-label="Smazat"', false);
+        $response->assertSee('title="Smazat"', false);
     }
 
     public function test_it_creates_an_account_owned_by_a_person(): void
@@ -180,5 +196,17 @@ class BankAccountsTest extends TestCase
         Livewire::test(BankAccounts::class)->call('delete', $account->id);
 
         $this->assertModelMissing($account);
+    }
+
+    public function test_an_account_with_transactions_cannot_be_deleted(): void
+    {
+        $account = BankAccount::factory()->create();
+        Transaction::factory()->forAccount($account)->create();
+
+        Livewire::test(BankAccounts::class)
+            ->call('delete', $account->id)
+            ->assertSee('Účet má transakce, proto ho nelze smazat.');
+
+        $this->assertModelExists($account);
     }
 }

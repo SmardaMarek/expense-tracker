@@ -1,8 +1,17 @@
 <div class="space-y-6">
-    <h1 class="text-2xl font-semibold">{{ __('Categories') }}</h1>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <h1 class="text-2xl font-semibold">{{ __('Categories') }}</h1>
+        @unless ($form_open)
+            <x-ui.button type="button" wire:click="create">{{ __('Add category') }}</x-ui.button>
+        @endunless
+    </div>
 
     @if (session('status'))
-        <p class="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">{{ session('status') }}</p>
+        <x-ui.alert>{{ session('status') }}</x-ui.alert>
+    @endif
+
+    @if (session('error'))
+        <x-ui.alert variant="error">{{ session('error') }}</x-ui.alert>
     @endif
 
     @unless ($hasCategories)
@@ -34,25 +43,27 @@
         </x-ui.card>
     @endif
 
-    <div class="grid gap-6 md:grid-cols-2">
+    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         @foreach ($groups as $type => $categories)
             <x-ui.card :padded="false" wire:key="group-{{ $type }}">
-                <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-                    <h2 class="font-semibold">{{ $typeLabels[$type] }}</h2>
-                    <x-ui.button type="button" size="sm" variant="secondary" wire:click="create('{{ $type }}')">{{ __('Add') }}</x-ui.button>
-                </div>
+                <h2 class="border-b border-slate-200 px-4 py-3 font-semibold">{{ $typeLabels[$type] }}</h2>
 
                 @if ($categories->isEmpty())
-                    <p class="px-4 py-3 text-sm text-slate-500">{{ __('No categories.') }}</p>
+                    <div class="space-y-3 px-4 py-3">
+                        <p class="text-sm text-slate-500">{{ __('No categories.') }}</p>
+                        @if ($hasCategories && in_array($type, $emptyTypes, true))
+                            <x-ui.button type="button" size="sm" wire:click="addDefaults('{{ $type }}')">{{ __('Add default categories') }}</x-ui.button>
+                        @endif
+                    </div>
                 @else
                     <ul class="divide-y divide-slate-100 text-sm">
                         @foreach ($categories as $category)
                             <li wire:key="category-{{ $category->id }}" class="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
                                 <span class="text-slate-900">{{ $category->name }}</span>
-                                <div class="flex gap-2">
-                                    <x-ui.button type="button" size="sm" variant="secondary" wire:click="edit({{ $category->id }})">{{ __('Edit') }}</x-ui.button>
-                                    <x-ui.button type="button" size="sm" variant="secondary" wire:click="archive({{ $category->id }})">{{ __('Archive') }}</x-ui.button>
-                                    <x-ui.button type="button" size="sm" variant="danger" wire:click="delete({{ $category->id }})" wire:confirm="{{ __('Delete the category :name?', ['name' => $category->name]) }}">{{ __('Delete') }}</x-ui.button>
+                                <div class="flex gap-1.5">
+                                    <x-ui.icon-button icon="edit" :label="__('Edit')" wire:click="edit({{ $category->id }})" />
+                                    <x-ui.icon-button icon="archive" :label="__('Archive')" wire:click="archive({{ $category->id }})" />
+                                    <x-ui.icon-button icon="delete" :label="__('Delete')" variant="danger" wire:click="delete({{ $category->id }})" wire:confirm="{{ __('Delete the category :name?', ['name' => $category->name]) }}" />
                                 </div>
                             </li>
                         @endforeach
@@ -70,9 +81,9 @@
                     @foreach ($archivedCategories as $category)
                         <li wire:key="archived-{{ $category->id }}" class="flex flex-wrap items-center justify-between gap-3 px-4 py-2">
                             <span class="text-slate-600">{{ $category->name }} · {{ $category->type->label() }}</span>
-                            <div class="flex gap-2">
-                                <x-ui.button type="button" size="sm" variant="secondary" wire:click="restore({{ $category->id }})">{{ __('Restore') }}</x-ui.button>
-                                <x-ui.button type="button" size="sm" variant="danger" wire:click="delete({{ $category->id }})" wire:confirm="{{ __('Delete the category :name?', ['name' => $category->name]) }}">{{ __('Delete') }}</x-ui.button>
+                            <div class="flex gap-1.5">
+                                <x-ui.icon-button icon="restore" :label="__('Restore')" wire:click="restore({{ $category->id }})" />
+                                <x-ui.icon-button icon="delete" :label="__('Delete')" variant="danger" wire:click="delete({{ $category->id }})" wire:confirm="{{ __('Delete the category :name?', ['name' => $category->name]) }}" />
                             </div>
                         </li>
                     @endforeach

@@ -1,12 +1,17 @@
 <?php
 
 return [
+    'amount' => 'Pole :attribute musí být kladná částka s nejvýše dvěma desetinnými místy, např. 1 234,50.',
+    'category_archived' => 'Archivovanou kategorii nelze použít.',
+    'category_mismatch' => 'Kategorie neodpovídá druhu transakce.',
     'confirmed' => 'Potvrzení pole :attribute se neshoduje.',
     'current_password' => 'Současné heslo není správné.',
     'czech_account_number' => 'Pole :attribute není platné české číslo účtu.',
+    'date_format' => 'Pole :attribute musí být platné datum.',
     'different' => 'Pole :attribute a :other se musí lišit.',
     'email' => 'Pole :attribute musí být platná e-mailová adresa.',
     'enum' => 'Vybraná hodnota pole :attribute je neplatná.',
+    'exists' => 'Vybraná hodnota pole :attribute je neplatná.',
     'in' => 'Vybraná hodnota pole :attribute je neplatná.',
     'max' => [
         'string' => 'Pole :attribute může mít nejvýše :max znaků.',
@@ -14,6 +19,7 @@ return [
     'min' => [
         'string' => 'Pole :attribute musí mít alespoň :min znaků.',
     ],
+    'regex' => 'Pole :attribute má neplatný formát.',
     'required' => 'Pole :attribute je povinné.',
     'unique' => 'Hodnota v poli :attribute je již použitá.',
 
@@ -25,6 +31,16 @@ return [
         'current_password' => 'současné heslo',
         'email' => 'e-mail',
         'first_name' => 'první osoba',
+        'form.amount' => 'částka',
+        'form.bank_account_id' => 'bankovní účet',
+        'form.booked_on' => 'datum',
+        'form.category_id' => 'kategorie',
+        'form.counterparty_account' => 'účet protistrany',
+        'form.counterparty_name' => 'protistrana',
+        'form.kind' => 'druh',
+        'form.message' => 'zpráva',
+        'form.note' => 'poznámka',
+        'form.variable_symbol' => 'variabilní symbol',
         'name' => 'jméno',
         'owner' => 'vlastník',
         'password' => 'heslo',

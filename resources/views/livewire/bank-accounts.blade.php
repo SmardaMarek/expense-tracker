@@ -7,14 +7,18 @@
     </div>
 
     @if (session('status'))
-        <p class="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">{{ session('status') }}</p>
+        <x-ui.alert>{{ session('status') }}</x-ui.alert>
+    @endif
+
+    @if (session('error'))
+        <x-ui.alert variant="error">{{ session('error') }}</x-ui.alert>
     @endif
 
     @unless ($hasMembers)
-        <p class="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <x-ui.alert variant="warning">
             {{ __('To assign accounts to people, first enter their names in') }}
             <a href="{{ route('settings') }}" class="font-semibold underline">{{ __('Settings') }}</a>.
-        </p>
+        </x-ui.alert>
     @endunless
 
     @if ($form_open)
@@ -58,10 +62,10 @@
                                 <td class="px-4 py-3 text-slate-700">{{ $account->owner_name }}</td>
                                 <td class="px-4 py-3 font-mono text-slate-700">{{ $account->account_number }}</td>
                                 <td class="px-4 py-3">
-                                    <div class="flex justify-end gap-2">
-                                        <x-ui.button type="button" size="sm" variant="secondary" wire:click="edit({{ $account->id }})">{{ __('Edit') }}</x-ui.button>
-                                        <x-ui.button type="button" size="sm" variant="secondary" wire:click="archive({{ $account->id }})">{{ __('Archive') }}</x-ui.button>
-                                        <x-ui.button type="button" size="sm" variant="danger" wire:click="delete({{ $account->id }})" wire:confirm="{{ __('Delete the account :name?', ['name' => $account->name]) }}">{{ __('Delete') }}</x-ui.button>
+                                    <div class="flex justify-end gap-1.5">
+                                        <x-ui.icon-button icon="edit" :label="__('Edit')" wire:click="edit({{ $account->id }})" />
+                                        <x-ui.icon-button icon="archive" :label="__('Archive')" wire:click="archive({{ $account->id }})" />
+                                        <x-ui.icon-button icon="delete" :label="__('Delete')" variant="danger" wire:click="delete({{ $account->id }})" wire:confirm="{{ __('Delete the account :name?', ['name' => $account->name]) }}" />
                                     </div>
                                 </td>
                             </tr>
@@ -82,9 +86,9 @@
                             <span class="text-slate-600">
                                 {{ $account->name }} · {{ $account->owner_name }} · <span class="font-mono">{{ $account->account_number }}</span>
                             </span>
-                            <div class="flex gap-2">
-                                <x-ui.button type="button" size="sm" variant="secondary" wire:click="restore({{ $account->id }})">{{ __('Restore') }}</x-ui.button>
-                                <x-ui.button type="button" size="sm" variant="danger" wire:click="delete({{ $account->id }})" wire:confirm="{{ __('Delete the account :name?', ['name' => $account->name]) }}">{{ __('Delete') }}</x-ui.button>
+                            <div class="flex gap-1.5">
+                                <x-ui.icon-button icon="restore" :label="__('Restore')" wire:click="restore({{ $account->id }})" />
+                                <x-ui.icon-button icon="delete" :label="__('Delete')" variant="danger" wire:click="delete({{ $account->id }})" wire:confirm="{{ __('Delete the account :name?', ['name' => $account->name]) }}" />
                             </div>
                         </li>
                     @endforeach

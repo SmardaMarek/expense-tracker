@@ -24,7 +24,7 @@ class Categories extends Component
 
     public string $category_type = 'expense';
 
-    public function create(string $type): void
+    public function create(string $type = 'expense'): void
     {
         $this->closeForm();
         $this->category_type = (CategoryType::tryFrom($type) ?? CategoryType::Expense)->value;
@@ -76,9 +76,15 @@ class Categories extends Component
         $this->resetValidation();
     }
 
-    public function addDefaults(DefaultCategories $defaults): void
+    public function addDefaults(DefaultCategories $defaults, string $type = ''): void
     {
-        if ($defaults->createIfNone() > 0) {
+        $groupType = CategoryType::tryFrom($type);
+
+        $created = $groupType === null
+            ? $defaults->createForEmptyGroups()
+            : $defaults->createIfGroupEmpty($groupType);
+
+        if ($created > 0) {
             session()->flash('status', __('Default categories added.'));
         }
     }
@@ -95,7 +101,15 @@ class Categories extends Component
 
     public function delete(int $id): void
     {
-        Category::query()->findOrFail($id)->delete();
+        $category = Category::query()->findOrFail($id);
+
+        if ($category->transactions()->exists()) {
+            session()->flash('error', __('This category is used by transactions, so it cannot be deleted. Archive it instead.'));
+
+            return;
+        }
+
+        $category->delete();
 
         if ($this->editing_id === $id) {
             $this->closeForm();
@@ -113,6 +127,11 @@ class Categories extends Component
             ]),
             'archivedCategories' => $categories->whereNotNull('archived_at')->values(),
             'hasCategories' => $categories->isNotEmpty(),
+            'emptyTypes' => collect(CategoryType::cases())
+                ->reject(fn (CategoryType $type): bool => $categories->contains('type', $type))
+                ->map(fn (CategoryType $type): string => $type->value)
+                ->values()
+                ->all(),
             'typeLabels' => collect(CategoryType::cases())
                 ->mapWithKeys(fn (CategoryType $type): array => [$type->value => $type->label()])
                 ->all(),

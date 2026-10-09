@@ -37,22 +37,27 @@ Goal: record money by hand and see a basic monthly total.
   1.3, when transactions exist.
 
 ### 1.2 Categories ✅
-- Categories page with two groups, expenses and income; flat list, no subcategories.
-- While the list is empty, a button adds a default Czech set (`DefaultCategories`).
+- Categories page with three groups: expenses, income and transfers; flat list, no
+  subcategories. One "add category" button by the title; the group is chosen in the form.
+- A group with no categories offers a default Czech set (`DefaultCategories`); groups that
+  already have categories are never touched.
 - Add, rename, archive, restore and delete. Names are unique per type, ignoring letter case.
   The type is fixed once created.
 
-### 1.3 Transactions 🔜
-- Data model for all later phases: account, date, amount (haléře, signed), type
-  (income / expense / transfer), counterparty name and account, variable symbol, message,
-  category, source (manual / import), note.
-- Month view with filters (account, owner, type, category); add, edit, delete.
-- Block deleting a bank account or category that has transactions (offer archiving instead).
-- A transaction's category must match its type (expense category for expenses, income category
-  for income); transfers have no category.
-- **Done when:** a month of transactions can be entered by hand and corrected.
+### 1.3 Transactions ✅
+- Data model: account, date, amount (haléře, signed: negative = money out), type
+  (income / expense / transfer), category, counterparty name and account, variable symbol,
+  message, note, source (manual / import).
+- The form uses a "kind" (expense, income, outgoing transfer, incoming transfer) that sets type
+  and sign. Amounts are entered Czech-style (`1 234,50`) and parsed by `App\Money\Amount`.
+- A category must match the kind: expense, income or transfer category; for transfers it is
+  optional. Changing the kind clears the chosen category. Archived accounts and categories
+  cannot be used for new transactions but stay valid on existing ones.
+- Month view with previous / next month and filters (account, owner, kind, category,
+  uncategorized), kept in the URL.
+- Accounts and categories that have transactions can only be archived, not deleted.
 
-### 1.4 Basic monthly summary ⏳
+### 1.4 Basic monthly summary 🔜
 - Per month: total income, total expenses, balance; transfers listed separately and excluded
   from totals. Filter by account or owner.
 - **Done when:** the numbers match a hand calculation over test data, including transfers.

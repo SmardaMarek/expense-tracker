@@ -49,7 +49,10 @@ php artisan app:reset-password    # set a new password for the single account
   area, e.g. `app/Statements/` for statement parsers.
 - **Shared UI lives in Blade components** under `resources/views/components/ui/`
   (`x-ui.field`, `x-ui.select`, `x-ui.button` with variants and `href`, `x-ui.card`,
-  `x-ui.nav-link`). Reuse them; add a new one instead of copying utility classes between views.
+  `x-ui.alert`, `x-ui.nav-link`, `x-ui.icon-button` for row actions with an accessible label). Reuse them; add a new one instead of copying utility classes
+  between views.
+- Format money only through `App\Money\Amount` (parse input, format for display) so amounts look
+  the same everywhere.
 - Layouts: `resources/views/layouts/app.blade.php` (signed in) and `guest.blade.php`
   (setup and login), selected with Livewire's `#[Layout]` attribute.
 

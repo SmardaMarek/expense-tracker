@@ -9,6 +9,7 @@ use App\Livewire\BankAccounts;
 use App\Livewire\Categories;
 use App\Livewire\Dashboard;
 use App\Livewire\Settings;
+use App\Livewire\Transactions;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -18,6 +19,7 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/', Dashboard::class)->name('dashboard');
+    Route::get('/transactions', Transactions::class)->name('transactions');
     Route::get('/accounts', BankAccounts::class)->name('accounts');
     Route::get('/categories', Categories::class)->name('categories');
     Route::get('/settings', Settings::class)->name('settings');

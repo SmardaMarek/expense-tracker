@@ -34,3 +34,5 @@ Bank statements and the database are never committed. See `.gitignore`.
 ## License
 
 [MIT](LICENSE)
+
+Icons are from [Heroicons](https://heroicons.com) (MIT).

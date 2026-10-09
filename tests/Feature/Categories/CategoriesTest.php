@@ -8,6 +8,7 @@ use App\Categories\DefaultCategories;
 use App\Enums\CategoryType;
 use App\Livewire\Categories;
 use App\Models\Category;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -31,11 +32,12 @@ class CategoriesTest extends TestCase
         $user = User::factory()->create();
         Category::factory()->create(['name' => 'Potraviny']);
         Category::factory()->income()->create(['name' => 'Mzda']);
+        Category::factory()->transfer()->create(['name' => 'Na spoření']);
 
         $response = $this->actingAs($user)->get(route('categories'));
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Výdaje', 'Potraviny', 'Příjmy', 'Mzda']);
+        $response->assertSeeInOrder(['Výdaje', 'Potraviny', 'Příjmy', 'Mzda', 'Převody', 'Na spoření']);
     }
 
     public function test_it_offers_default_categories_when_there_are_none(): void
@@ -47,17 +49,62 @@ class CategoriesTest extends TestCase
 
         $this->assertSame(count(DefaultCategories::EXPENSES), Category::query()->ofType(CategoryType::Expense)->count());
         $this->assertSame(count(DefaultCategories::INCOME), Category::query()->ofType(CategoryType::Income)->count());
+        $this->assertSame(count(DefaultCategories::TRANSFERS), Category::query()->ofType(CategoryType::Transfer)->count());
         $this->assertDatabaseHas('categories', ['type' => 'expense', 'name' => 'Potraviny']);
         $this->assertDatabaseHas('categories', ['type' => 'income', 'name' => 'Mzda']);
+        $this->assertDatabaseHas('categories', ['type' => 'transfer', 'name' => 'Příspěvek na společný účet']);
     }
 
-    public function test_defaults_are_not_added_when_categories_already_exist(): void
+    public function test_an_empty_group_offers_its_own_defaults(): void
+    {
+        Category::factory()->create(['name' => 'Vlastní výdaj']);
+        Category::factory()->income()->create(['name' => 'Vlastní příjem']);
+
+        Livewire::test(Categories::class)
+            ->assertSeeHtml("addDefaults('transfer')")
+            ->assertDontSeeHtml("addDefaults('expense')")
+            ->call('addDefaults', 'transfer')
+            ->assertDontSeeHtml("addDefaults('transfer')");
+
+        $this->assertSame(count(DefaultCategories::TRANSFERS), Category::query()->ofType(CategoryType::Transfer)->count());
+        $this->assertSame(1, Category::query()->ofType(CategoryType::Expense)->count());
+        $this->assertSame(1, Category::query()->ofType(CategoryType::Income)->count());
+    }
+
+    public function test_group_defaults_are_not_added_when_the_group_has_categories(): void
+    {
+        Category::factory()->transfer()->create(['name' => 'Můj převod']);
+
+        Livewire::test(Categories::class)->call('addDefaults', 'transfer');
+
+        $this->assertSame(1, Category::query()->ofType(CategoryType::Transfer)->count());
+    }
+
+    public function test_one_add_button_opens_the_form_with_a_type_choice(): void
+    {
+        Livewire::test(Categories::class)
+            ->assertSee('Přidat kategorii')
+            ->call('create')
+            ->assertSet('form_open', true)
+            ->assertSet('category_type', 'expense')
+            ->assertDontSee('Přidat kategorii')
+            ->set('category_type', 'transfer')
+            ->set('category_name', 'Na dovolenou')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('categories', ['type' => 'transfer', 'name' => 'Na dovolenou']);
+    }
+
+    public function test_defaults_only_fill_groups_that_are_empty(): void
     {
         Category::factory()->create(['name' => 'Vlastní']);
 
         Livewire::test(Categories::class)->call('addDefaults');
 
-        $this->assertDatabaseCount('categories', 1);
+        $this->assertSame(1, Category::query()->ofType(CategoryType::Expense)->count());
+        $this->assertSame(count(DefaultCategories::INCOME), Category::query()->ofType(CategoryType::Income)->count());
+        $this->assertSame(count(DefaultCategories::TRANSFERS), Category::query()->ofType(CategoryType::Transfer)->count());
     }
 
     public function test_it_creates_an_expense_category(): void
@@ -190,5 +237,17 @@ class CategoriesTest extends TestCase
         Livewire::test(Categories::class)->call('delete', $category->id);
 
         $this->assertModelMissing($category);
+    }
+
+    public function test_a_category_used_by_transactions_cannot_be_deleted(): void
+    {
+        $category = Category::factory()->create();
+        Transaction::factory()->inCategory($category)->create();
+
+        Livewire::test(Categories::class)
+            ->call('delete', $category->id)
+            ->assertSee('Kategorie je použitá v transakcích, proto ji nelze smazat.');
+
+        $this->assertModelExists($category);
     }
 }

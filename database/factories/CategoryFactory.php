@@ -29,6 +29,11 @@ class CategoryFactory extends Factory
         return $this->state(fn (): array => ['type' => CategoryType::Income]);
     }
 
+    public function transfer(): static
+    {
+        return $this->state(fn (): array => ['type' => CategoryType::Transfer]);
+    }
+
     public function archived(): static
     {
         return $this->state(fn (): array => ['archived_at' => now()]);

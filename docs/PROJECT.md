@@ -36,10 +36,18 @@ Every transaction is exactly one of:
 
 ### Transfers
 
-Each person sends money to the shared account. This is a transfer, not an expense: counting
-it would double the spending (once when it leaves a personal account, once when the shared
-account pays the rent). Transfers are excluded from income and expense totals, and shown in
-their own section.
+A transfer is money moved between the household's own accounts, for example:
+- from a personal account to the shared account (each person's contribution),
+- from a current account to a savings account,
+- from a savings account back to a current account.
+
+This is not an expense: counting the contribution to the shared account would double the
+spending (once when it leaves a personal account, once when the shared account pays the rent).
+Transfers are excluded from income and expense totals, and shown in their own section.
+
+Transfers have their own category group (e.g. contribution to the shared account, to savings,
+from savings), so they can be told apart. The category is optional. The transaction form
+explains what a transfer is when a transfer is chosen.
 
 Detection, in order:
 1. The counterparty account number matches a registered account → transfer.
