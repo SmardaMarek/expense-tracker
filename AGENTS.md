@@ -48,8 +48,8 @@ php artisan app:reset-password    # set a new password for the single account
   logic (statement parsing, categorization, matching, reporting) in plain PHP classes grouped by
   area, e.g. `app/Statements/` for statement parsers.
 - **Shared UI lives in Blade components** under `resources/views/components/ui/`
-  (`x-ui.field`, `x-ui.button`, `x-ui.card`). Reuse them; add a new one instead of copying
-  utility classes between views.
+  (`x-ui.field`, `x-ui.select`, `x-ui.button` with variants and `href`, `x-ui.card`,
+  `x-ui.nav-link`). Reuse them; add a new one instead of copying utility classes between views.
 - Layouts: `resources/views/layouts/app.blade.php` (signed in) and `guest.blade.php`
   (setup and login), selected with Livewire's `#[Layout]` attribute.
 

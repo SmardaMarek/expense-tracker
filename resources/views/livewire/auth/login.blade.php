@@ -10,6 +10,6 @@
             {{ __('Remember me') }}
         </label>
 
-        <x-ui.button>{{ __('Sign in') }}</x-ui.button>
+        <x-ui.button class="w-full">{{ __('Sign in') }}</x-ui.button>
     </form>
 </x-ui.card>

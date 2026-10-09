@@ -18,7 +18,9 @@ what is left, month by month.
 - **Password:** changed in the app on an account page (current password required). A forgotten
   password is reset from the command line, since a local app has no mail set up.
 - Three separate bank accounts: one per person plus one **shared** account, all in that profile.
-- Every account has an **owner flag**: person A, person B, or shared.
+- Every account has an **owner**: one of the two household members, or shared. The members'
+  names are set on the Settings page, so nothing personal is hard-coded.
+- An account that has transactions can be archived but not deleted, so history is kept.
 - Each account is registered with its account number, so the app can recognize its own accounts.
 - Dashboards can be filtered by account or by owner, or show everything combined.
 

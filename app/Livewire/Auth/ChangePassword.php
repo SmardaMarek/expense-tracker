@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Livewire;
+namespace App\Livewire\Auth;
 
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Account')]
-class Account extends Component
+class ChangePassword extends Component
 {
     public string $current_password = '';
 
@@ -33,11 +31,11 @@ class Account extends Component
 
         $this->reset('current_password', 'password', 'password_confirmation');
 
-        session()->flash('status', __('Password changed.'));
+        session()->flash('password_status', __('Password changed.'));
     }
 
     public function render(): View
     {
-        return view('livewire.account');
+        return view('livewire.auth.change-password');
     }
 }

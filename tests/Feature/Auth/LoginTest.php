@@ -73,7 +73,7 @@ class LoginTest extends TestCase
         User::factory()->create();
 
         $this->get(route('dashboard'))->assertRedirect(route('login'));
-        $this->get(route('account'))->assertRedirect(route('login'));
+        $this->get(route('settings'))->assertRedirect(route('login'));
     }
 
     public function test_signed_in_user_can_open_the_dashboard(): void

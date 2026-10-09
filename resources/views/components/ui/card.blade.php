@@ -1,3 +1,5 @@
-<section {{ $attributes->class('rounded-lg border border-slate-200 bg-white p-6 shadow-sm') }}>
+@props(['padded' => true])
+
+<section {{ $attributes->class(['rounded-lg border border-slate-200 bg-white shadow-sm', 'p-6' => $padded, 'overflow-hidden' => ! $padded]) }}>
     {{ $slot }}
 </section>

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
-use App\Livewire\Account;
+use App\Livewire\Auth\ChangePassword;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -19,7 +19,7 @@ class ChangePasswordTest extends TestCase
     {
         $user = User::factory()->create(['password' => 'old-password-123']);
 
-        Livewire::actingAs($user)->test(Account::class)
+        Livewire::actingAs($user)->test(ChangePassword::class)
             ->set('current_password', 'old-password-123')
             ->set('password', 'new-password-456')
             ->set('password_confirmation', 'new-password-456')
@@ -33,7 +33,7 @@ class ChangePasswordTest extends TestCase
     {
         $user = User::factory()->create(['password' => 'old-password-123']);
 
-        Livewire::actingAs($user)->test(Account::class)
+        Livewire::actingAs($user)->test(ChangePassword::class)
             ->set('current_password', 'not-my-password')
             ->set('password', 'new-password-456')
             ->set('password_confirmation', 'new-password-456')
@@ -47,7 +47,7 @@ class ChangePasswordTest extends TestCase
     {
         $user = User::factory()->create(['password' => 'old-password-123']);
 
-        Livewire::actingAs($user)->test(Account::class)
+        Livewire::actingAs($user)->test(ChangePassword::class)
             ->set('current_password', 'old-password-123')
             ->set('password', 'short')
             ->set('password_confirmation', 'short')
@@ -61,7 +61,7 @@ class ChangePasswordTest extends TestCase
     {
         $user = User::factory()->create(['password' => 'old-password-123']);
 
-        Livewire::actingAs($user)->test(Account::class)
+        Livewire::actingAs($user)->test(ChangePassword::class)
             ->set('current_password', 'old-password-123')
             ->set('password', 'new-password-456')
             ->set('password_confirmation', 'different-password-789')
@@ -75,7 +75,7 @@ class ChangePasswordTest extends TestCase
     {
         $user = User::factory()->create(['password' => 'old-password-123']);
 
-        Livewire::actingAs($user)->test(Account::class)
+        Livewire::actingAs($user)->test(ChangePassword::class)
             ->set('current_password', 'old-password-123')
             ->set('password', 'old-password-123')
             ->set('password_confirmation', 'old-password-123')
@@ -86,7 +86,7 @@ class ChangePasswordTest extends TestCase
     public function test_the_new_password_works_for_the_next_sign_in(): void
     {
         $user = User::factory()->create(['password' => 'old-password-123']);
-        Livewire::actingAs($user)->test(Account::class)
+        Livewire::actingAs($user)->test(ChangePassword::class)
             ->set('current_password', 'old-password-123')
             ->set('password', 'new-password-456')
             ->set('password_confirmation', 'new-password-456')

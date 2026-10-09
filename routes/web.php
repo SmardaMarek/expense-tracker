@@ -3,10 +3,11 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\LogoutController;
-use App\Livewire\Account;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Setup;
+use App\Livewire\BankAccounts;
 use App\Livewire\Dashboard;
+use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -16,6 +17,7 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/', Dashboard::class)->name('dashboard');
-    Route::get('/account', Account::class)->name('account');
+    Route::get('/accounts', BankAccounts::class)->name('accounts');
+    Route::get('/settings', Settings::class)->name('settings');
     Route::post('/logout', LogoutController::class)->name('logout');
 });

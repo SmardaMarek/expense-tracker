@@ -11,6 +11,6 @@
         <p class="text-xs text-slate-500">{{ __('Use at least :count characters.', ['count' => 10]) }}</p>
         <x-ui.field name="password_confirmation" type="password" :label="__('Confirm password')" autocomplete="new-password" />
 
-        <x-ui.button>{{ __('Create account') }}</x-ui.button>
+        <x-ui.button class="w-full">{{ __('Create account') }}</x-ui.button>
     </form>
 </x-ui.card>

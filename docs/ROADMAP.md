@@ -26,15 +26,17 @@ Status legend: ✅ done · 🔜 next · ⏳ planned
 
 Goal: record money by hand and see a basic monthly total.
 
-### 1.1 Accounts 🔜
-- Create, edit and delete bank accounts: name, owner, account number (Czech format
-  `prefix-number/bank code`), bank.
-- Owners: two people plus "shared". The two people's display names are set in the app.
-- **Done when:** the three real accounts can be entered; account numbers are validated and
-  normalized so they can be matched against statement counterparties later.
-- **Decide:** whether an account can be archived instead of deleted once it has transactions.
+### 1.1 Accounts ✅
+- Bank accounts page: create, edit, archive, restore and delete. Each account has a name, an
+  owner and a Czech account number (`prefix-number/bank code`).
+- Account numbers are checked with the official checksum and stored normalized
+  (`CzechAccountNumber`), so statement counterparties can be matched later.
+- Household members (two people) are named on the Settings page; an account belongs to one of
+  them or is shared.
+- Decided: an account with transactions is archived, not deleted. The delete guard is added in
+  1.3, when transactions exist.
 
-### 1.2 Categories ⏳
+### 1.2 Categories 🔜
 - A default Czech category set for expenses and incomes, created on first run.
 - Add, rename, archive categories. Archived categories stay on old transactions.
 - **Done when:** every transaction can be assigned a category and the list is editable.
@@ -44,6 +46,7 @@ Goal: record money by hand and see a basic monthly total.
   (income / expense / transfer), counterparty name and account, variable symbol, message,
   category, source (manual / import), note.
 - Month view with filters (account, owner, type, category); add, edit, delete.
+- Block deleting a bank account that has transactions (offer archiving instead).
 - **Done when:** a month of transactions can be entered by hand and corrected.
 
 ### 1.4 Basic monthly summary ⏳
