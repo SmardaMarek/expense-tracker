@@ -12,7 +12,11 @@ what is left, month by month.
 
 - One profile (a single login) shared by both people. It sees all three accounts.
 - The app is **behind a login**, even though it only runs locally. There is a single user
-  account; no registration page. The password can be reset from the command line.
+  account and no public registration.
+- **First run:** while no user exists, a one-time setup page creates the account (email and
+  password). It is unavailable once a user exists.
+- **Password:** changed in the app on an account page (current password required). A forgotten
+  password is reset from the command line, since a local app has no mail set up.
 - Three separate bank accounts: one per person plus one **shared** account, all in that profile.
 - Every account has an **owner flag**: person A, person B, or shared.
 - Each account is registered with its account number, so the app can recognize its own accounts.
@@ -109,35 +113,38 @@ Confidence handling:
 
 | Area | Choice | Notes |
 |------|--------|-------|
-| Backend / frontend | **To be decided** (leaning Laravel) | Standalone project, independent of any existing codebase, no Docker. Leaning Laravel + Vue/Inertia; Python (FastAPI) + a JS frontend only if the bank exports are PDF only. |
+| Backend / frontend | **Laravel 13 + Livewire 4** (PHP 8.3+) | Standalone project, no Docker. Tailwind CSS 4 built with Vite; the built assets are committed, so running the app needs no Node. |
 | Database | **SQLite** | Decided. One file, no server, trivial backup. Amounts stored as integers (haléře). Can move to MySQL/PostgreSQL if the app is ever hosted. |
 | App type | Responsive web app | One codebase for phone and desktop. |
 | AI | Provider-agnostic, free option required | A small interface with the provider set in configuration (local model via Ollama, a free API tier, or OpenAI API). Batched classification returning structured JSON. |
-| Background work | Job queue (framework-dependent) | Parsing and AI calls run as jobs. |
-| Excel export | Library depends on the backend | Decide when building the export. |
-| Charts | Chart.js or ApexCharts | Decide when building the dashboard. |
-| Statement parsing | Depends on bank export format | CSV preferred; PDF is a significant risk. |
+| Background work | No separate worker process | Import and AI categorization run in batches while the import page is open, with progress shown, so nothing extra has to be started. |
+| Excel export | PHP library, to be chosen | Decide when building the export. |
+| Charts | Chart.js, bundled through Vite | No CDN. |
+| Statement parsing | ČSOB PDF (primary), CSV (fallback) | Deterministic parsing with a PHP PDF library (candidate: `smalot/pdfparser`). Every import is checked against the statement's opening and closing balance. Pluggable parsers per bank and format. |
 
 ## Decisions
 
 - **Currency and language:** CZK only, Czech UI.
 - **Profiles:** one profile, one login, all three accounts visible. Login is required.
-- **Network exposure:** the server listens on `127.0.0.1` only, so other devices on the
-  network cannot reach it. The login protects the web interface; the SQLite file itself is not
-  encrypted.
-- **Hosting:** local only. The app runs on the user's own computer and is opened on
-  `localhost` in the browser, via a browser shortcut or installed web app. No phone or remote
-  access for now.
+- **Network exposure:** the app accepts requests from the same computer only, so other devices
+  on the network cannot reach it. The login protects the web interface; the SQLite file itself
+  is not encrypted.
+- **Hosting:** local only. The app runs on the user's own computer and is opened in the
+  browser at a local address, via a bookmark or installed web app. On the maintainer's machine
+  WAMP's Apache serves it at `http://expense-tracker.local` and starts with Windows. A one-click
+  start script for other users is planned. No phone or remote access for now.
 - **Simple usage is a priority:** starting the app must be one click or automatic. No Docker
   containers to start manually.
 
 ## Open decisions
 
-1. **Statement format.** Not known yet; the banks' exports must be tested. Biggest technical risk.
+1. **Statement parsing.** ČSOB provides PDF by default; CSV is also available. PDF is
+   preferred, to be verified on a real sample statement. Biggest technical risk.
 2. **AI provider.** Must be free. Local model keeps data on the machine but is heavy on a
    personal computer; free hosted tiers receive transaction text and may use it for training.
    Optionally strip account numbers and names before sending. Performance of local models to
    be tested.
-3. **Backend and frontend stack.** See the Technology table. May combine technologies if needed.
+3. **PDF library.** Verify `smalot/pdfparser` on a real statement; fall back to `pdftotext`
+   (poppler) if layout reconstruction is poor.
 4. **Duplicate handling.** To be discussed. Proposed: detect and skip duplicates on overlapping
    statements.

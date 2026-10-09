@@ -13,11 +13,24 @@ exports/
 *.xlsx
 *.pdf
 
-vendor/
-node_modules/
+*.log
+.phpunit.result.cache
+/.phpunit.cache
+/auth.json
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+
 __pycache__/
 .venv/
 
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db
+
+CLAUDE.local.md

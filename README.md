@@ -25,6 +25,7 @@ account statements.
 
 - [Project description](docs/PROJECT.md): scope, money model, categorization pipeline,
   technology choices and open decisions.
+- [Roadmap](docs/ROADMAP.md): build order and current status.
 
 ## Privacy
 
