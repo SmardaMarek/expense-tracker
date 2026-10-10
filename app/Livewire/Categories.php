@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Categories\DefaultCategories;
+use App\Enums\CategoryPurpose;
 use App\Enums\CategoryType;
 use App\Models\Category;
 use Illuminate\Contracts\View\View;
@@ -24,6 +25,8 @@ class Categories extends Component
 
     public string $category_type = 'expense';
 
+    public string $category_purpose = '';
+
     public function create(string $type = 'expense'): void
     {
         $this->closeForm();
@@ -39,6 +42,7 @@ class Categories extends Component
         $this->editing_id = $category->id;
         $this->category_name = $category->name;
         $this->category_type = $category->type->value;
+        $this->category_purpose = $category->purpose->value ?? '';
         $this->form_open = true;
     }
 
@@ -49,6 +53,7 @@ class Categories extends Component
         $this->validate([
             'category_name' => ['required', 'string', 'max:50'],
             'category_type' => ['required', Rule::enum(CategoryType::class)],
+            'category_purpose' => ['nullable', Rule::enum(CategoryPurpose::class)],
         ]);
 
         $category = $this->editing_id === null ? null : Category::query()->findOrFail($this->editing_id);
@@ -60,10 +65,12 @@ class Categories extends Component
             return;
         }
 
+        $purpose = $type === CategoryType::Transfer ? CategoryPurpose::tryFrom($this->category_purpose) : null;
+
         if ($category === null) {
-            Category::query()->create(['type' => $type, 'name' => $this->category_name]);
+            Category::query()->create(['type' => $type, 'name' => $this->category_name, 'purpose' => $purpose]);
         } else {
-            $category->update(['name' => $this->category_name]);
+            $category->update(['name' => $this->category_name, 'purpose' => $purpose]);
         }
 
         $this->closeForm();
@@ -72,7 +79,7 @@ class Categories extends Component
 
     public function closeForm(): void
     {
-        $this->reset('form_open', 'editing_id', 'category_name', 'category_type');
+        $this->reset('form_open', 'editing_id', 'category_name', 'category_type', 'category_purpose');
         $this->resetValidation();
     }
 
@@ -131,6 +138,9 @@ class Categories extends Component
                 ->reject(fn (CategoryType $type): bool => $categories->contains('type', $type))
                 ->map(fn (CategoryType $type): string => $type->value)
                 ->values()
+                ->all(),
+            'purposeOptions' => ['' => __('None')] + collect(CategoryPurpose::cases())
+                ->mapWithKeys(fn (CategoryPurpose $purpose): array => [$purpose->value => $purpose->label()])
                 ->all(),
             'typeLabels' => collect(CategoryType::cases())
                 ->mapWithKeys(fn (CategoryType $type): array => [$type->value => $type->label()])

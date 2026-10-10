@@ -51,9 +51,22 @@ final readonly class TransactionFilter
      */
     public function apply(Builder $query): Builder
     {
-        return $query
+        return $this->applyAccountScope($query)
             ->where('booked_on', '>=', $this->month->toDateString())
             ->where('booked_on', '<', $this->month->addMonth()->toDateString())
+            ->when($this->type !== null, fn (Builder $q) => $q->where('type', $this->type))
+            ->when($this->category === self::UNCATEGORIZED, fn (Builder $q) => $q->whereNull('category_id'))
+            ->when($this->category !== null && ctype_digit($this->category), fn (Builder $q) => $q
+                ->where('category_id', (int) $this->category));
+    }
+
+    /**
+     * @param  Builder<Transaction>  $query
+     * @return Builder<Transaction>
+     */
+    public function applyAccountScope(Builder $query): Builder
+    {
+        return $query
             ->when($this->accountId !== null, fn (Builder $q) => $q->where('bank_account_id', $this->accountId))
             ->when($this->owner === self::SHARED, fn (Builder $q) => $q->whereHas(
                 'bankAccount',
@@ -62,10 +75,11 @@ final readonly class TransactionFilter
             ->when($this->owner !== null && ctype_digit($this->owner), fn (Builder $q) => $q->whereHas(
                 'bankAccount',
                 fn (Builder $account) => $account->where('member_id', (int) $this->owner),
-            ))
-            ->when($this->type !== null, fn (Builder $q) => $q->where('type', $this->type))
-            ->when($this->category === self::UNCATEGORIZED, fn (Builder $q) => $q->whereNull('category_id'))
-            ->when($this->category !== null && ctype_digit($this->category), fn (Builder $q) => $q
-                ->where('category_id', (int) $this->category));
+            ));
+    }
+
+    public function coversAllAccounts(): bool
+    {
+        return $this->accountId === null && $this->owner === null;
     }
 }

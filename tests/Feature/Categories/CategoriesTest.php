@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Categories;
 
 use App\Categories\DefaultCategories;
+use App\Enums\CategoryPurpose;
 use App\Enums\CategoryType;
 use App\Livewire\Categories;
 use App\Models\Category;
@@ -128,6 +129,73 @@ class CategoriesTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertDatabaseHas('categories', ['type' => 'income', 'name' => 'Bonus']);
+    }
+
+    public function test_a_transfer_category_can_have_a_purpose(): void
+    {
+        Livewire::test(Categories::class)
+            ->call('create', 'transfer')
+            ->set('category_name', 'Spořicí účet')
+            ->set('category_purpose', 'savings_deposit')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('categories', ['type' => 'transfer', 'name' => 'Spořicí účet', 'purpose' => 'savings_deposit']);
+    }
+
+    public function test_a_purpose_is_not_stored_for_expense_categories(): void
+    {
+        Livewire::test(Categories::class)
+            ->call('create', 'expense')
+            ->set('category_name', 'Kino')
+            ->set('category_purpose', 'investment')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('categories', ['name' => 'Kino', 'purpose' => null]);
+    }
+
+    public function test_the_purpose_field_is_shown_only_for_transfers(): void
+    {
+        Livewire::test(Categories::class)
+            ->call('create', 'expense')
+            ->assertDontSee('Účel v přehledu')
+            ->set('category_type', 'transfer')
+            ->assertSee('Účel v přehledu');
+    }
+
+    public function test_editing_changes_and_clears_the_purpose(): void
+    {
+        $category = Category::factory()->transfer()->create(['name' => 'Broker', 'purpose' => CategoryPurpose::Investment]);
+
+        Livewire::test(Categories::class)
+            ->call('edit', $category->id)
+            ->assertSet('category_purpose', 'investment')
+            ->set('category_purpose', '')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull($category->fresh()->purpose);
+    }
+
+    public function test_an_unknown_purpose_is_rejected(): void
+    {
+        Livewire::test(Categories::class)
+            ->call('create', 'transfer')
+            ->set('category_name', 'Něco')
+            ->set('category_purpose', 'lottery')
+            ->call('save')
+            ->assertHasErrors('category_purpose');
+    }
+
+    public function test_default_transfer_categories_come_with_their_purposes(): void
+    {
+        Livewire::test(Categories::class)->call('addDefaults', 'transfer');
+
+        $this->assertDatabaseHas('categories', ['name' => 'Na spoření', 'purpose' => 'savings_deposit']);
+        $this->assertDatabaseHas('categories', ['name' => 'Ze spoření', 'purpose' => 'savings_withdrawal']);
+        $this->assertDatabaseHas('categories', ['name' => 'Investice', 'purpose' => 'investment']);
+        $this->assertDatabaseHas('categories', ['name' => 'Příspěvek na společný účet', 'purpose' => null]);
     }
 
     public function test_it_requires_a_name(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Categories;
 
+use App\Enums\CategoryPurpose;
 use App\Enums\CategoryType;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +46,14 @@ final class DefaultCategories
         'Contribution to the shared account',
         'To savings',
         'From savings',
+        'Investments',
         'Other transfers',
+    ];
+
+    public const PURPOSES = [
+        'To savings' => CategoryPurpose::SavingsDeposit,
+        'From savings' => CategoryPurpose::SavingsWithdrawal,
+        'Investments' => CategoryPurpose::Investment,
     ];
 
     /**
@@ -77,7 +85,11 @@ final class DefaultCategories
         $names = self::namesFor($type);
 
         foreach ($names as $name) {
-            Category::query()->create(['type' => $type, 'name' => __($name)]);
+            Category::query()->create([
+                'type' => $type,
+                'name' => __($name),
+                'purpose' => self::PURPOSES[$name] ?? null,
+            ]);
         }
 
         return count($names);

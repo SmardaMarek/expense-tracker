@@ -75,6 +75,20 @@ is reported on its own.
    between accounts, and missing fixed payments.
 6. **Excel export.** A monthly `.xlsx` report with fixed and variable costs in separate sections.
 
+## Savings and investments
+
+Transfer categories can carry a purpose: savings deposit, savings withdrawal or investment.
+The dashboard uses it (never the category name) to show two separate figures:
+
+- **Saved** = money moved to savings minus money taken out of savings in the month.
+- **Invested** = outgoing transfers to investments.
+
+Each movement counts once even when both accounts are in the app: deposits and investments by
+their outgoing side, withdrawals by their incoming side.
+
+**Account movement** ("Pohyb na účtech") is the total change of money on the selected accounts,
+transfers included.
+
 ## Fixed items (rent, subscriptions, utilities, standing orders)
 
 The user maintains a list of fixed items. Each item has:
@@ -129,7 +143,7 @@ Confidence handling:
 | AI | Provider-agnostic, free option required | A small interface with the provider set in configuration (local model via Ollama, a free API tier, or OpenAI API). Batched classification returning structured JSON. |
 | Background work | No separate worker process | Import and AI categorization run in batches while the import page is open, with progress shown, so nothing extra has to be started. |
 | Excel export | PHP library, to be chosen | Decide when building the export. |
-| Charts | Chart.js, bundled through Vite | No CDN. |
+| Charts | **Apache ECharts** (Apache-2.0), bundled through Vite | Interactive donut, trend and sankey charts; only the used modules are imported. No CDN. ApexCharts was rejected because of its 2025 licence change. |
 | Statement parsing | ČSOB PDF (primary), CSV (fallback) | Deterministic parsing with a PHP PDF library (candidate: `smalot/pdfparser`). Every import is checked against the statement's opening and closing balance. Pluggable parsers per bank and format. |
 
 ## Decisions

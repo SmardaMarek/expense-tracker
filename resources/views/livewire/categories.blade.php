@@ -32,7 +32,14 @@
                 @if ($editing_id)
                     <p class="text-sm text-slate-600">{{ __('Type') }}: {{ $typeLabels[$category_type] }}</p>
                 @else
-                    <x-ui.select name="category_type" :label="__('Type')" :options="$typeLabels" />
+                    <x-ui.select name="category_type" :label="__('Type')" :options="$typeLabels" live />
+                @endif
+
+                @if ($category_type === 'transfer')
+                    <div>
+                        <x-ui.select name="category_purpose" :label="__('Purpose in the overview')" :options="$purposeOptions" />
+                        <p class="mt-1 text-xs text-slate-500">{{ __('Savings and investment transfers are summed up separately on the dashboard.') }}</p>
+                    </div>
                 @endif
 
                 <div class="flex gap-3">
@@ -59,7 +66,12 @@
                     <ul class="divide-y divide-slate-100 text-sm">
                         @foreach ($categories as $category)
                             <li wire:key="category-{{ $category->id }}" class="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
-                                <span class="text-slate-900">{{ $category->name }}</span>
+                                <span class="text-slate-900">
+                                    {{ $category->name }}
+                                    @if ($category->purpose)
+                                        <span class="ml-1 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700">{{ $category->purpose->label() }}</span>
+                                    @endif
+                                </span>
                                 <div class="flex gap-1.5">
                                     <x-ui.icon-button icon="edit" :label="__('Edit')" wire:click="edit({{ $category->id }})" />
                                     <x-ui.icon-button icon="archive" :label="__('Archive')" wire:click="archive({{ $category->id }})" />

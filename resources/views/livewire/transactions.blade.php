@@ -49,11 +49,7 @@
     @endif
 
     <x-ui.card class="space-y-4">
-        <div class="flex flex-wrap items-center gap-3">
-            <x-ui.button type="button" size="sm" variant="secondary" wire:click="previousMonth" aria-label="{{ __('Previous month') }}">&larr;</x-ui.button>
-            <h2 class="min-w-40 text-center text-lg font-semibold capitalize">{{ $monthLabel }}</h2>
-            <x-ui.button type="button" size="sm" variant="secondary" wire:click="nextMonth" aria-label="{{ __('Next month') }}">&rarr;</x-ui.button>
-        </div>
+        <x-ui.month-nav :label="$monthLabel" class="flex-wrap" />
 
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <x-ui.select name="account" :label="__('Bank account')" :options="$accountFilterOptions" live />

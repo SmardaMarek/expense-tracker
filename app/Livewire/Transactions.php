@@ -6,10 +6,11 @@ namespace App\Livewire;
 
 use App\Enums\TransactionKind;
 use App\Enums\TransactionType;
+use App\Livewire\Concerns\FiltersByAccount;
+use App\Livewire\Concerns\NavigatesMonths;
 use App\Livewire\Forms\TransactionForm;
 use App\Models\BankAccount;
 use App\Models\Category;
-use App\Models\Member;
 use App\Models\Transaction;
 use App\Transactions\TransactionFilter;
 use Carbon\CarbonImmutable;
@@ -21,16 +22,8 @@ use Livewire\Component;
 #[Title('Transactions')]
 class Transactions extends Component
 {
-    private const MONTH_FORMAT = 'Y-m';
-
-    #[Url(except: '')]
-    public string $month = '';
-
-    #[Url(except: '')]
-    public string $account = '';
-
-    #[Url(except: '')]
-    public string $owner = '';
+    use FiltersByAccount;
+    use NavigatesMonths;
 
     #[Url(except: '')]
     public string $type = '';
@@ -41,16 +34,6 @@ class Transactions extends Component
     public bool $form_open = false;
 
     public TransactionForm $form;
-
-    public function previousMonth(): void
-    {
-        $this->month = $this->filter()->month->subMonth()->format(self::MONTH_FORMAT);
-    }
-
-    public function nextMonth(): void
-    {
-        $this->month = $this->filter()->month->addMonth()->format(self::MONTH_FORMAT);
-    }
 
     public function resetFilters(): void
     {
@@ -68,7 +51,7 @@ class Transactions extends Component
     {
         $this->closeForm();
 
-        $month = $this->filter()->month;
+        $month = $this->selectedMonth();
         $today = CarbonImmutable::today();
 
         $this->form->booked_on = ($today->isSameMonth($month) ? $today : $month)->toDateString();
@@ -122,13 +105,11 @@ class Transactions extends Component
                 ->orderByDesc('booked_on')
                 ->orderByDesc('id')
                 ->get(),
-            'monthLabel' => $filter->month->locale(app()->getLocale())->isoFormat('MMMM YYYY'),
+            'monthLabel' => $this->monthLabel(),
             'hasAccounts' => BankAccount::query()->active()->exists(),
             'filtersActive' => $this->account !== '' || $this->owner !== '' || $this->type !== '' || $this->category !== '',
-            'accountFilterOptions' => ['' => __('All accounts')] + BankAccount::query()->orderBy('name')->pluck('name', 'id')->all(),
-            'ownerFilterOptions' => ['' => __('Everyone')]
-                + Member::query()->orderBy('position')->pluck('name', 'id')->all()
-                + [TransactionFilter::SHARED => __('Shared')],
+            'accountFilterOptions' => $this->accountFilterOptions(),
+            'ownerFilterOptions' => $this->ownerFilterOptions(),
             'typeFilterOptions' => ['' => __('All kinds')] + $this->typeOptions(),
             'categoryFilterOptions' => $this->categoryFilterOptions(),
             'formAccountOptions' => $this->formAccountOptions(),

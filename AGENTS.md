@@ -93,6 +93,9 @@ php artisan app:reset-password    # set a new password for the single account
 ## Frontend assets
 
 - Tailwind classes are compiled by Vite. After changing views or classes, run `npm run build`.
+- Charts use Apache ECharts through the Alpine component in `resources/js/charts.js`
+  (`x-data="chart('type', data)"`). Send amounts in haléře; the component formats them. Give the
+  chart element a `wire:key` derived from its data so it is rebuilt when the data changes.
 - **`public/build` is committed** so people can run the app without Node. Commit rebuilt assets
   together with the views that need them.
 - No external CDNs, web fonts or remote scripts: the app must work fully offline.

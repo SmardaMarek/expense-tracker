@@ -57,10 +57,17 @@ Goal: record money by hand and see a basic monthly total.
   uncategorized), kept in the URL.
 - Accounts and categories that have transactions can only be archived, not deleted.
 
-### 1.4 Basic monthly summary 🔜
-- Per month: total income, total expenses, balance; transfers listed separately and excluded
-  from totals. Filter by account or owner.
-- **Done when:** the numbers match a hand calculation over test data, including transfers.
+### 1.4 Monthly summary dashboard ✅
+- Přehled page with month switcher and owner / account filters.
+- Tiles: income, expenses, balance, saved, invested, account movement, each compared with the
+  previous month (`App\Reports\MonthlySummary`, `Totals`).
+- Saved = transfers to savings minus transfers from savings; invested = outgoing transfers to
+  investments. Both rely on the transfer category's purpose, not its name, and count each
+  movement once (deposits by their outgoing side, withdrawals by their incoming side).
+- Charts with Apache ECharts: expenses by category (donut), last 12 months (bars + lines),
+  where the money went (sankey). Category lists and chart slices link to filtered transactions.
+- Per-owner table when no filter is active.
+- Verified in a real browser (headless Edge) on desktop and phone widths.
 
 ---
 
@@ -133,10 +140,11 @@ Goal: most transactions are categorized automatically.
 
 ## Milestone 4 — Reporting
 
-### 4.1 Monthly dashboard ⏳
-- Income, expenses, balance; income by source; top categories and merchants; fixed vs variable;
-  left after fixed costs; transfers; missing fixed payments. Filters by account and owner.
-- Charts with Chart.js.
+### 4.1 Dashboard additions ⏳
+- The core dashboard with charts was built early in 1.4.
+- Still to add once fixed items exist: fixed vs variable spending, left after fixed costs,
+  missing fixed payments; top merchants.
+- Rearrange the dashboard after real-world testing.
 
 ### 4.2 Excel export ⏳
 - Monthly `.xlsx` with summary, fixed and variable costs in separate sections, and all

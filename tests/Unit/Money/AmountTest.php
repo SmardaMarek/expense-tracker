@@ -64,6 +64,13 @@ class AmountTest extends TestCase
         $this->assertSame("1\u{00A0}000\u{00A0}000,00\u{00A0}Kč", Amount::format(100_000_000));
     }
 
+    public function test_signed_format_marks_positive_amounts_with_a_plus(): void
+    {
+        $this->assertSame("+1\u{00A0}234,50\u{00A0}Kč", Amount::formatSigned(123_450));
+        $this->assertSame("\u{2212}1\u{00A0}234,50\u{00A0}Kč", Amount::formatSigned(-123_450));
+        $this->assertSame("0,00\u{00A0}Kč", Amount::formatSigned(0));
+    }
+
     public function test_it_formats_amounts_for_editing_without_sign_or_separators(): void
     {
         $this->assertSame('1234,50', Amount::toInput(-123_450));

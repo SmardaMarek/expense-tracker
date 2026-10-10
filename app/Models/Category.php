@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CategoryPurpose;
 use App\Enums\CategoryType;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['type', 'name', 'archived_at'])]
+#[Fillable(['type', 'name', 'purpose', 'archived_at'])]
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
@@ -54,6 +55,7 @@ class Category extends Model
     {
         return [
             'type' => CategoryType::class,
+            'purpose' => CategoryPurpose::class,
             'archived_at' => 'datetime',
         ];
     }

@@ -39,6 +39,11 @@ final class Amount
         return $sign.self::digits(abs($haler), self::THOUSANDS_SEPARATOR).self::THOUSANDS_SEPARATOR.self::CURRENCY;
     }
 
+    public static function formatSigned(int $haler): string
+    {
+        return ($haler > 0 ? '+' : '').self::format($haler);
+    }
+
     public static function toInput(int $haler): string
     {
         return self::digits(abs($haler), '');
