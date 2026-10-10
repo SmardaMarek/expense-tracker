@@ -22,7 +22,7 @@ trait FiltersByAccount
      */
     protected function accountFilterOptions(): array
     {
-        return ['' => __('All accounts')] + BankAccount::query()->orderBy('name')->pluck('name', 'id')->all();
+        return ['' => __('All accounts')] + BankAccount::query()->get(['id', 'name'])->sortByLocale('name')->pluck('name', 'id')->all();
     }
 
     /**

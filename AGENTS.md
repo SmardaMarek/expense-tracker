@@ -62,6 +62,8 @@ php artisan app:reset-password    # set a new password for the single account
 - **No descriptive prose comments.** Name things so the code explains itself. Only structured
   annotations used by tooling are allowed (`@param`, `@return`, `@var`, `@use`, …).
 - No magic values: use enums, config or class constants.
+- Sort names with `->sortByLocale('name')` on a collection, not `orderBy('name')` in SQL: SQLite
+  sorts accented letters after `z`, which breaks Czech alphabetical order.
 - Run Pint before finishing.
 
 ### Money and data

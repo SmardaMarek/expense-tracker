@@ -110,8 +110,8 @@ class Categories extends Component
     {
         $category = Category::query()->findOrFail($id);
 
-        if ($category->transactions()->exists()) {
-            session()->flash('error', __('This category is used by transactions, so it cannot be deleted. Archive it instead.'));
+        if ($category->transactions()->exists() || $category->recurringPayments()->exists()) {
+            session()->flash('error', __('This category is used by transactions or recurring payments, so it cannot be deleted. Archive it instead.'));
 
             return;
         }
@@ -125,7 +125,7 @@ class Categories extends Component
 
     public function render(): View
     {
-        $categories = Category::query()->orderBy('name')->get();
+        $categories = Category::query()->get()->sortByLocale('name');
 
         return view('livewire.categories', [
             'groups' => collect(CategoryType::cases())->mapWithKeys(fn (CategoryType $type): array => [

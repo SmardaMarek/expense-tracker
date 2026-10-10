@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Enums\CategoryType;
 use App\Enums\TransactionKind;
 use App\Enums\TransactionType;
 use App\Livewire\Concerns\FiltersByAccount;
@@ -11,7 +12,9 @@ use App\Livewire\Concerns\NavigatesMonths;
 use App\Livewire\Forms\TransactionForm;
 use App\Models\BankAccount;
 use App\Models\Category;
+use App\Models\RecurringPayment;
 use App\Models\Transaction;
+use App\Money\Amount;
 use App\Transactions\TransactionFilter;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -55,7 +58,7 @@ class Transactions extends Component
         $today = CarbonImmutable::today();
 
         $this->form->booked_on = ($today->isSameMonth($month) ? $today : $month)->toDateString();
-        $this->form->bank_account_id = (string) (BankAccount::query()->active()->orderBy('name')->value('id') ?? '');
+        $this->form->bank_account_id = (string) (BankAccount::query()->active()->get(['id', 'name'])->sortByLocale('name')->first()?->id ?? '');
         $this->form_open = true;
     }
 
@@ -69,6 +72,16 @@ class Transactions extends Component
     public function updatedFormKind(): void
     {
         $this->form->category_id = '';
+        $this->form->recurring_payment_id = '';
+    }
+
+    public function updatedFormRecurringPaymentId(string $value): void
+    {
+        $payment = ctype_digit($value) ? RecurringPayment::query()->find((int) $value) : null;
+
+        if ($payment !== null) {
+            $this->form->applyRecurringPayment($payment);
+        }
     }
 
     public function save(): void
@@ -101,7 +114,7 @@ class Transactions extends Component
         $filter = $this->filter();
 
         return view('livewire.transactions', [
-            'transactions' => $filter->apply(Transaction::query()->with(['bankAccount.member', 'category']))
+            'transactions' => $filter->apply(Transaction::query()->with(['bankAccount.member', 'category', 'recurringPayment:id,name']))
                 ->orderByDesc('booked_on')
                 ->orderByDesc('id')
                 ->get(),
@@ -115,6 +128,7 @@ class Transactions extends Component
             'formAccountOptions' => $this->formAccountOptions(),
             'kindOptions' => $this->kindOptions(),
             'formCategoryOptions' => $this->formCategoryOptions(),
+            'formRecurringOptions' => $this->formRecurringOptions(),
             'isTransfer' => TransactionKind::tryFrom($this->form->kind)?->isTransfer() ?? false,
         ]);
     }
@@ -154,9 +168,9 @@ class Transactions extends Component
         return ['' => __('All categories'), TransactionFilter::UNCATEGORIZED => __('Uncategorized')]
             + Category::query()
                 ->when($categoryType !== null, fn ($query) => $query->ofType($categoryType))
-                ->orderBy('type')
-                ->orderBy('name')
                 ->get()
+                ->sortByLocale('name')
+                ->sortBy(fn (Category $category): int => (int) array_search($category->type, CategoryType::cases(), true))
                 ->mapWithKeys(fn (Category $category): array => [
                     $category->id => $categoryType === null
                         ? "{$category->name} ({$category->type->label()})"
@@ -176,8 +190,28 @@ class Transactions extends Component
 
         return BankAccount::query()
             ->where(fn ($query) => $query->whereNull('archived_at')->orWhere('id', $currentId))
-            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->sortByLocale('name')
             ->pluck('name', 'id')
+            ->all();
+    }
+
+    /**
+     * @return array<int|string, string>
+     */
+    private function formRecurringOptions(): array
+    {
+        $currentId = $this->form->transaction_id === null
+            ? null
+            : Transaction::query()->whereKey($this->form->transaction_id)->value('recurring_payment_id');
+
+        return ['' => __('— none —')] + RecurringPayment::query()
+            ->where(fn ($query) => $query->whereNull('archived_at')->orWhere('id', $currentId))
+            ->get()
+            ->sortByLocale('name')
+            ->mapWithKeys(fn (RecurringPayment $payment): array => [
+                $payment->id => "{$payment->name} ({$payment->kind->label()}, ".Amount::format($payment->amount).')',
+            ])
             ->all();
     }
 
@@ -195,7 +229,8 @@ class Transactions extends Component
         return ['' => __('— uncategorized —')] + Category::query()
             ->ofType($categoryType)
             ->where(fn ($query) => $query->whereNull('archived_at')->orWhere('id', $currentId))
-            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->sortByLocale('name')
             ->pluck('name', 'id')
             ->all();
     }

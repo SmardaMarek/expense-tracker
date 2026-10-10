@@ -36,6 +36,14 @@ class BankAccount extends Model
     }
 
     /**
+     * @return HasMany<RecurringPayment, $this>
+     */
+    public function recurringPayments(): HasMany
+    {
+        return $this->hasMany(RecurringPayment::class);
+    }
+
+    /**
      * @param  Builder<BankAccount>  $query
      */
     public function scopeActive(Builder $query): void

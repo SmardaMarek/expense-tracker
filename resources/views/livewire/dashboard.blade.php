@@ -23,14 +23,44 @@
             @endif
         </div>
 
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
             <x-ui.stat :label="__('Incomes')" :amount="$summary->current->income" :previous="$summary->previous->income" />
             <x-ui.stat :label="__('Expenses')" :amount="$summary->current->expenses" :previous="$summary->previous->expenses" :higher-is-better="false" />
             <x-ui.stat :label="__('Balance')" :amount="$summary->current->balance()" :previous="$summary->previous->balance()" signed />
+            <x-ui.stat :label="__('Account movement')" :amount="$summary->current->movement" :previous="$summary->previous->movement" signed :hint="__('How much the money on the selected accounts went up or down, transfers included.')" />
+            <x-ui.stat :label="__('Fixed expenses')" :amount="$summary->fixedExpenses" :previous="$summary->previousFixedExpenses" :higher-is-better="false" :hint="__('Recurring expenses due this month: the paid amount, or the expected amount while unpaid.')" />
+            <x-ui.stat :label="__('Left after fixed costs')" :amount="$summary->leftAfterFixed()" :previous="$summary->previousLeftAfterFixed()" signed :hint="__('Incomes minus fixed expenses.')" />
             <x-ui.stat :label="__('Saved')" :amount="$summary->current->saved" :previous="$summary->previous->saved" signed />
             <x-ui.stat :label="__('Invested')" :amount="$summary->current->invested" :previous="$summary->previous->invested" />
-            <x-ui.stat :label="__('Account movement')" :amount="$summary->current->movement" :previous="$summary->previous->movement" signed :hint="__('How much the money on the selected accounts went up or down, transfers included.')" />
         </div>
+
+        <x-ui.card :padded="false">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+                <h2 class="font-semibold">{{ __('Recurring payments this month') }}</h2>
+                <a href="{{ route('recurring', array_filter(['month' => $month])) }}" class="text-sm font-medium text-indigo-700 hover:underline">{{ __('Manage') }}</a>
+            </div>
+            @if ($dueRecurring === [])
+                <p class="px-4 py-3 text-sm text-slate-500">
+                    {{ __('No recurring payments due this month.') }}
+                    <a href="{{ route('recurring') }}" class="font-medium text-indigo-700 hover:underline">{{ __('Add recurring payment') }}</a>
+                </p>
+            @else
+                <ul class="grid divide-y divide-slate-100 text-sm sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-3">
+                    @foreach ($dueRecurring as $state)
+                        <li wire:key="due-{{ $state->payment->id }}" class="flex items-center justify-between gap-3 px-4 py-2.5">
+                            <div class="min-w-0">
+                                <div class="truncate font-medium text-slate-900">{{ $state->payment->name }}</div>
+                                <div class="text-xs text-slate-500"><x-recurring.state-detail :state="$state" /></div>
+                            </div>
+                            <div class="flex shrink-0 flex-col items-end gap-0.5">
+                                <span class="font-mono text-slate-700">{{ \App\Money\Amount::format($state->payment->amount) }}</span>
+                                <x-recurring.status-badge :status="$state->status" />
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-ui.card>
 
         <div class="grid gap-6 lg:grid-cols-2">
             <x-ui.card class="space-y-4">

@@ -28,6 +28,14 @@ class Category extends Model
     }
 
     /**
+     * @return HasMany<RecurringPayment, $this>
+     */
+    public function recurringPayments(): HasMany
+    {
+        return $this->hasMany(RecurringPayment::class);
+    }
+
+    /**
      * @param  Builder<Category>  $query
      */
     public function scopeActive(Builder $query): void

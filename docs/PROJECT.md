@@ -91,16 +91,25 @@ transfers included.
 
 ## Fixed items (rent, subscriptions, utilities, standing orders)
 
-The user maintains a list of fixed items. Each item has:
+The user maintains a list of recurring payments ("Pravidelné platby"). Each item has:
 
-- a name (Rent, Netflix, Electricity)
-- an amount and a tolerance (exact for rent, a percentage for utilities)
-- a frequency (monthly, quarterly, yearly) and an expected day or window
-- a category
-- an account or owner, with optional match text (payee, variable symbol)
+- a name (Rent, Netflix, Electricity, Savings)
+- a kind: expense, or outgoing transfer (e.g. a standing order to savings)
+- an expected amount
+- a frequency (monthly, quarterly, half-yearly, yearly) counted from a start month, and an
+  optional end month
+- an optional due day (the payment shows as missing 3 days after it); without a due day it may be
+  paid any time in the month (typical for transfers)
+- the account it is paid from, a category, an optional recipient account number (e.g. the
+  landlord's) and optional match text (payee, variable symbol)
 
-Only **outgoing** payments (withdrawals) are recognized as fixed items. Incoming money is
-categorized normally.
+Only **outgoing** payments are recurring payments. Incoming money is categorized normally.
+
+Each month every item has a status: paid (showing the amount actually paid), waiting, missing
+(deadline passed), or not due. A payment counts for the right month even when it is up
+to a week early (rent for the 1st paid on the 29th) or late. For now payments are linked by hand
+("record payment" or the recurring payment field on a transaction); automatic matching comes
+with statement import.
 
 The list is the source of truth. It drives:
 - cheaper and more consistent categorization (see below)

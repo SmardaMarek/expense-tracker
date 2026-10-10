@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'amount',
     'type',
     'category_id',
+    'recurring_payment_id',
     'counterparty_name',
     'counterparty_account',
     'variable_symbol',
@@ -47,6 +48,14 @@ class Transaction extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * @return BelongsTo<RecurringPayment, $this>
+     */
+    public function recurringPayment(): BelongsTo
+    {
+        return $this->belongsTo(RecurringPayment::class);
     }
 
     public function kind(): TransactionKind

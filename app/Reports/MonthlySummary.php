@@ -8,6 +8,7 @@ use App\Enums\TransactionType;
 use App\Models\BankAccount;
 use App\Models\Member;
 use App\Models\Transaction;
+use App\Recurring\RecurringOverview;
 use App\Transactions\TransactionFilter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -19,6 +20,8 @@ final class MonthlySummary
     public const TOP_FLOW_EXPENSES = 8;
 
     private const MONTH_KEY = 'Y-m';
+
+    public function __construct(private readonly RecurringOverview $recurringOverview) {}
 
     public function build(TransactionFilter $filter): MonthlySummaryData
     {
@@ -38,6 +41,8 @@ final class MonthlySummary
         $expenseCategories = $this->categoryAmounts($currentMonth, TransactionType::Expense);
         $incomeCategories = $this->categoryAmounts($currentMonth, TransactionType::Income);
 
+        $recurring = $this->recurringOverview->forMonth($month, $filter);
+
         return new MonthlySummaryData(
             current: $current,
             previous: Totals::of($byMonth->get($month->subMonth()->format(self::MONTH_KEY), collect())),
@@ -47,6 +52,9 @@ final class MonthlySummary
             owners: $filter->coversAllAccounts() ? $this->ownerTotals($currentMonth) : [],
             trend: $this->trend($byMonth, $trendStart),
             flow: MoneyFlow::from($current, $incomeCategories, $expenseCategories, self::TOP_FLOW_EXPENSES),
+            recurring: $recurring,
+            fixedExpenses: $this->recurringOverview->fixedExpenses($recurring),
+            previousFixedExpenses: $this->recurringOverview->fixedExpenses($this->recurringOverview->forMonth($month->subMonth(), $filter)),
         );
     }
 

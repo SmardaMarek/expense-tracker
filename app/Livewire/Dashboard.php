@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Enums\RecurringStatus;
 use App\Livewire\Concerns\FiltersByAccount;
 use App\Livewire\Concerns\NavigatesMonths;
 use App\Models\BankAccount;
+use App\Recurring\RecurringState;
 use App\Reports\DashboardCharts;
 use App\Reports\MonthlySummary;
 use App\Transactions\TransactionFilter;
@@ -35,6 +37,10 @@ class Dashboard extends Component
             'hasAccounts' => BankAccount::query()->active()->exists(),
             'monthLabel' => $this->monthLabel(),
             'summary' => $summary,
+            'dueRecurring' => array_values(array_filter(
+                $summary->recurring,
+                fn (RecurringState $state): bool => $state->status !== RecurringStatus::NotDue,
+            )),
             'charts' => $charts,
             'donut' => $charts->expenseDonut($summary),
             'trend' => $charts->trend($summary),

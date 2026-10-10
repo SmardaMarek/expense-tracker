@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentFrequency;
 use App\Livewire\Dashboard;
 use App\Models\BankAccount;
 use App\Models\Category;
 use App\Models\Member;
+use App\Models\RecurringPayment;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -136,5 +138,33 @@ class DashboardTest extends TestCase
             ->call('previousMonth')
             ->assertSet('month', '2026-09')
             ->assertSee('září 2026');
+    }
+
+    public function test_it_shows_fixed_expenses_and_what_is_left_after_them(): void
+    {
+        $this->travelTo('2026-10-20 12:00:00');
+        $account = BankAccount::factory()->create();
+        Transaction::factory()->income()->forAccount($account)->create(['amount' => 5_000_000]);
+        $rent = RecurringPayment::factory()->create(['amount' => 1_650_000, 'bank_account_id' => $account->id]);
+        Transaction::factory()->forRecurring($rent)->on('2026-10-15')->create();
+        RecurringPayment::factory()->create(['amount' => 30_000, 'due_day' => 28, 'bank_account_id' => $account->id]);
+
+        Livewire::test(Dashboard::class)
+            ->assertViewHas('summary', fn ($summary) => $summary->fixedExpenses === 1_680_000 && $summary->leftAfterFixed() === 3_320_000)
+            ->assertSee('Fixní výdaje')
+            ->assertSee('Zbývá po fixních');
+    }
+
+    public function test_the_recurring_card_lists_payments_due_this_month_with_status(): void
+    {
+        $this->travelTo('2026-10-20 12:00:00');
+        $account = BankAccount::factory()->create();
+        RecurringPayment::factory()->create(['name' => 'Nájem', 'due_day' => 1, 'bank_account_id' => $account->id]);
+        RecurringPayment::factory()->create(['name' => 'Pojištění', 'frequency' => PaymentFrequency::Yearly, 'start_month' => '2026-03-01', 'bank_account_id' => $account->id]);
+
+        Livewire::test(Dashboard::class)
+            ->assertSee('Pravidelné platby v měsíci')
+            ->assertSeeInOrder(['Nájem', 'Chybí'])
+            ->assertDontSee('Pojištění');
     }
 }

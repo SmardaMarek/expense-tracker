@@ -8,6 +8,7 @@ use App\Banking\CzechAccountNumber;
 use App\Enums\TransactionKind;
 use App\Enums\TransactionSource;
 use App\Models\Category;
+use App\Models\RecurringPayment;
 use App\Models\Transaction;
 use App\Money\Amount;
 use App\Rules\ValidAmount;
@@ -29,6 +30,8 @@ class TransactionForm extends Form
 
     public string $category_id = '';
 
+    public string $recurring_payment_id = '';
+
     public string $counterparty_name = '';
 
     public string $counterparty_account = '';
@@ -47,6 +50,7 @@ class TransactionForm extends Form
         $this->kind = $transaction->kind()->value;
         $this->amount = Amount::toInput($transaction->amount);
         $this->category_id = (string) ($transaction->category_id ?? '');
+        $this->recurring_payment_id = (string) ($transaction->recurring_payment_id ?? '');
         $this->counterparty_name = $transaction->counterparty_name ?? '';
         $this->counterparty_account = $transaction->counterparty_account ?? '';
         $this->variable_symbol = $transaction->variable_symbol ?? '';
@@ -65,6 +69,7 @@ class TransactionForm extends Form
             'amount' => $kind->sign() * (Amount::parse($this->amount) ?? 0),
             'type' => $kind->type(),
             'category_id' => $this->category_id === '' ? null : (int) $this->category_id,
+            'recurring_payment_id' => $this->recurring_payment_id === '' ? null : (int) $this->recurring_payment_id,
             'counterparty_name' => self::nullIfBlank($this->counterparty_name),
             'counterparty_account' => self::normalizeAccount($this->counterparty_account),
             'variable_symbol' => self::nullIfBlank($this->variable_symbol),
@@ -97,6 +102,7 @@ class TransactionForm extends Form
             'kind' => ['required', Rule::enum(TransactionKind::class)],
             'amount' => ['required', 'string', new ValidAmount],
             'category_id' => ['nullable', $this->categoryMatchesKind(...)],
+            'recurring_payment_id' => ['nullable', $this->recurringPaymentMatchesKind(...)],
             'counterparty_name' => ['nullable', 'string', 'max:150'],
             'counterparty_account' => ['nullable', 'string', 'max:50'],
             'variable_symbol' => ['nullable', 'regex:/^\d{1,10}$/'],
@@ -118,6 +124,32 @@ class TransactionForm extends Form
 
         if ($category->archived_at !== null && $category->id !== $this->original()?->category_id) {
             $fail('validation.category_archived')->translate();
+        }
+    }
+
+    public function applyRecurringPayment(RecurringPayment $payment): void
+    {
+        $this->recurring_payment_id = (string) $payment->id;
+        $this->kind = $payment->kind->value;
+        $this->amount = Amount::toInput($payment->amount);
+        $this->bank_account_id = (string) $payment->bank_account_id;
+        $this->category_id = (string) ($payment->category_id ?? '');
+        $this->counterparty_name = $payment->name;
+        $this->counterparty_account = $payment->counterparty_account ?? '';
+    }
+
+    private function recurringPaymentMatchesKind(string $attribute, mixed $value, Closure $fail): void
+    {
+        $payment = ctype_digit((string) $value) ? RecurringPayment::query()->find((int) $value) : null;
+
+        if ($payment === null || $payment->kind->value !== $this->kind) {
+            $fail('validation.recurring_mismatch')->translate();
+
+            return;
+        }
+
+        if ($payment->archived_at !== null && $payment->id !== $this->original()?->recurring_payment_id) {
+            $fail('validation.recurring_archived')->translate();
         }
     }
 

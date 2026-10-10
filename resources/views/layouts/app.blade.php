@@ -13,6 +13,7 @@
             <nav class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" aria-label="{{ __('Main navigation') }}">
                 <x-ui.nav-link route="dashboard">{{ __('Dashboard') }}</x-ui.nav-link>
                 <x-ui.nav-link route="transactions">{{ __('Transactions') }}</x-ui.nav-link>
+                <x-ui.nav-link route="recurring">{{ __('Recurring payments') }}</x-ui.nav-link>
                 <x-ui.nav-link route="accounts">{{ __('Bank accounts') }}</x-ui.nav-link>
                 <x-ui.nav-link route="categories">{{ __('Categories') }}</x-ui.nav-link>
                 <x-ui.nav-link route="settings">{{ __('Settings') }}</x-ui.nav-link>

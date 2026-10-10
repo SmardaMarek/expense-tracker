@@ -41,6 +41,17 @@ class CategoriesTest extends TestCase
         $response->assertSeeInOrder(['Výdaje', 'Potraviny', 'Příjmy', 'Mzda', 'Převody', 'Na spoření']);
     }
 
+    public function test_categories_are_sorted_in_czech_alphabetical_order(): void
+    {
+        foreach (['Zdraví', 'Úroky', 'Čistírna', 'Cestování', 'Auto', 'Šperky', 'Sport'] as $name) {
+            Category::factory()->create(['name' => $name]);
+        }
+
+        Livewire::test(Categories::class)
+            ->assertViewHas('groups', fn ($groups) => $groups['expense']->pluck('name')->all()
+                === ['Auto', 'Cestování', 'Čistírna', 'Sport', 'Šperky', 'Úroky', 'Zdraví']);
+    }
+
     public function test_it_offers_default_categories_when_there_are_none(): void
     {
         Livewire::test(Categories::class)
@@ -314,7 +325,7 @@ class CategoriesTest extends TestCase
 
         Livewire::test(Categories::class)
             ->call('delete', $category->id)
-            ->assertSee('Kategorie je použitá v transakcích, proto ji nelze smazat.');
+            ->assertSee('Kategorie je použitá v transakcích nebo pravidelných platbách, proto ji nelze smazat.');
 
         $this->assertModelExists($category);
     }

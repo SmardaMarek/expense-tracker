@@ -109,12 +109,18 @@ Goal: transactions come from bank statements instead of typing.
 
 Goal: most transactions are categorized automatically.
 
-### 3.1 Fixed items ⏳
-- List of expected recurring payments: name, amount and tolerance, frequency, expected day
-  window, category, account, optional match text.
-- Deterministic matching of outgoing payments on import.
-- **Done when:** rent and subscriptions are tagged on import without AI, and an expected payment
-  that did not arrive is reported as missing.
+### 3.1 Recurring payments (fixed items)
+- ✅ "Pravidelné platby" page: name, kind (expense or outgoing transfer), amount,
+  frequency (monthly / quarterly / half-yearly / yearly) from a start month, optional end month,
+  optional due day (missing 3 days after it), account, category, optional recipient account and match
+  text.
+- ✅ Monthly status per payment: paid (with the actual amount), waiting, missing, not due
+  (`App\Recurring\RecurringOverview`, `DueSchedule`). A payment up to 7 days early or late counts
+  for the right month.
+- ✅ Linked by hand: "record payment" button, or the recurring payment field on a transaction.
+- ✅ Dashboard: fixed expenses, left after fixed costs, recurring payments of the month.
+- ⏳ Automatic matching of imported payments (account, amount, date window,
+  recipient account, match text) — built together with statement import.
 
 ### 3.2 Learned rules ⏳
 - A manual category change creates a rule (payee → category) applied to future imports.
@@ -142,8 +148,8 @@ Goal: most transactions are categorized automatically.
 
 ### 4.1 Dashboard additions ⏳
 - The core dashboard with charts was built early in 1.4.
-- Still to add once fixed items exist: fixed vs variable spending, left after fixed costs,
-  missing fixed payments; top merchants.
+- Fixed expenses, left after fixed costs and missing payments were added with 3.1.
+- Still to add: top merchants.
 - Rearrange the dashboard after real-world testing.
 
 ### 4.2 Excel export ⏳

@@ -32,6 +32,10 @@
                 <x-ui.field name="form.booked_on" type="date" :label="__('Date')" />
                 <x-ui.select name="form.bank_account_id" :label="__('Bank account')" :options="$formAccountOptions" />
                 <x-ui.select name="form.category_id" :label="__('Category')" :options="$formCategoryOptions" />
+                <div>
+                    <x-ui.select name="form.recurring_payment_id" :label="__('Recurring payment')" :options="$formRecurringOptions" live />
+                    <p class="mt-1 text-xs text-slate-500">{{ __('Choosing one fills in its amount, account and category.') }}</p>
+                </div>
                 <x-ui.field name="form.counterparty_name" :label="__('Counterparty')" autocomplete="off" />
                 <x-ui.field name="form.counterparty_account" :label="__('Counterparty account')" autocomplete="off" />
                 <x-ui.field name="form.variable_symbol" :label="__('Variable symbol')" autocomplete="off" inputmode="numeric" />
@@ -84,7 +88,14 @@
                             <tr wire:key="transaction-{{ $transaction->id }}">
                                 <td class="whitespace-nowrap px-4 py-3 text-slate-700">{{ $transaction->booked_on->format('j. n. Y') }}</td>
                                 <td class="px-4 py-3">
-                                    <div class="font-medium text-slate-900">{{ $transaction->counterparty_name ?? $transaction->message ?? '—' }}</div>
+                                    <div class="flex items-center gap-1.5 font-medium text-slate-900">
+                                        {{ $transaction->counterparty_name ?? $transaction->message ?? '—' }}
+                                        @if ($transaction->recurringPayment)
+                                            <span title="{{ __('Recurring payment: :name', ['name' => $transaction->recurringPayment->name]) }}" aria-label="{{ __('Recurring payment: :name', ['name' => $transaction->recurringPayment->name]) }}" role="img" class="text-indigo-500">
+                                                <x-ui.icon name="recurring" class="h-4 w-4" />
+                                            </span>
+                                        @endif
+                                    </div>
                                     @if ($transaction->counterparty_name && $transaction->message)
                                         <div class="text-xs text-slate-500">{{ $transaction->message }}</div>
                                     @endif

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Reports;
 
+use App\Recurring\RecurringState;
+
 final readonly class MonthlySummaryData
 {
     /**
@@ -12,6 +14,7 @@ final readonly class MonthlySummaryData
      * @param  list<TransferAmount>  $transferCategories
      * @param  list<OwnerTotals>  $owners
      * @param  list<TrendPoint>  $trend
+     * @param  list<RecurringState>  $recurring
      */
     public function __construct(
         public Totals $current,
@@ -22,5 +25,18 @@ final readonly class MonthlySummaryData
         public array $owners,
         public array $trend,
         public MoneyFlow $flow,
+        public array $recurring = [],
+        public int $fixedExpenses = 0,
+        public int $previousFixedExpenses = 0,
     ) {}
+
+    public function leftAfterFixed(): int
+    {
+        return $this->current->income - $this->fixedExpenses;
+    }
+
+    public function previousLeftAfterFixed(): int
+    {
+        return $this->previous->income - $this->previousFixedExpenses;
+    }
 }

@@ -8,6 +8,7 @@ use App\Enums\TransactionSource;
 use App\Enums\TransactionType;
 use App\Models\BankAccount;
 use App\Models\Category;
+use App\Models\RecurringPayment;
 use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -56,6 +57,16 @@ class TransactionFactory extends Factory
     public function forAccount(BankAccount $account): static
     {
         return $this->state(fn (): array => ['bank_account_id' => $account->id]);
+    }
+
+    public function forRecurring(RecurringPayment $payment): static
+    {
+        return $this->state(fn (): array => [
+            'recurring_payment_id' => $payment->id,
+            'bank_account_id' => $payment->bank_account_id,
+            'type' => $payment->kind->type(),
+            'amount' => -$payment->amount,
+        ]);
     }
 
     public function inCategory(Category $category): static

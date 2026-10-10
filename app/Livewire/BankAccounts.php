@@ -105,8 +105,8 @@ class BankAccounts extends Component
     {
         $account = BankAccount::query()->findOrFail($id);
 
-        if ($account->transactions()->exists()) {
-            session()->flash('error', __('This account has transactions, so it cannot be deleted. Archive it instead.'));
+        if ($account->transactions()->exists() || $account->recurringPayments()->exists()) {
+            session()->flash('error', __('This account is used by transactions or recurring payments, so it cannot be deleted. Archive it instead.'));
 
             return;
         }
@@ -121,8 +121,8 @@ class BankAccounts extends Component
     public function render(): View
     {
         return view('livewire.bank-accounts', [
-            'activeAccounts' => BankAccount::query()->active()->with('member')->orderBy('name')->get(),
-            'archivedAccounts' => BankAccount::query()->archived()->with('member')->orderBy('name')->get(),
+            'activeAccounts' => BankAccount::query()->active()->with('member')->get()->sortByLocale('name'),
+            'archivedAccounts' => BankAccount::query()->archived()->with('member')->get()->sortByLocale('name'),
             'ownerOptions' => $this->ownerOptions(),
             'hasMembers' => Member::query()->exists(),
         ]);

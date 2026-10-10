@@ -10,6 +10,7 @@ use App\Livewire\Transactions;
 use App\Models\BankAccount;
 use App\Models\Category;
 use App\Models\Member;
+use App\Models\RecurringPayment;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -501,5 +502,74 @@ class TransactionsTest extends TestCase
         Livewire::test(Transactions::class)
             ->assertViewHas('transactions', fn ($transactions) => $transactions->first()->type === TransactionType::Transfer)
             ->assertSeeInOrder(['Petr', 'Převod', 'Příspěvek na společný účet']);
+    }
+
+    public function test_choosing_a_recurring_payment_fills_in_the_form(): void
+    {
+        $account = BankAccount::factory()->create();
+        $category = Category::factory()->create();
+        $rent = RecurringPayment::factory()->create([
+            'name' => 'Nájem',
+            'amount' => 1_650_000,
+            'bank_account_id' => $account->id,
+            'category_id' => $category->id,
+            'counterparty_account' => '19-2000145399/0800',
+        ]);
+
+        Livewire::test(Transactions::class)
+            ->call('create')
+            ->set('form.recurring_payment_id', (string) $rent->id)
+            ->assertSet('form.kind', 'expense')
+            ->assertSet('form.amount', '16500,00')
+            ->assertSet('form.bank_account_id', (string) $account->id)
+            ->assertSet('form.category_id', (string) $category->id)
+            ->assertSet('form.counterparty_name', 'Nájem')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('transactions', ['recurring_payment_id' => $rent->id, 'amount' => -1_650_000]);
+    }
+
+    public function test_a_recurring_payment_must_match_the_kind(): void
+    {
+        BankAccount::factory()->create();
+        $savings = RecurringPayment::factory()->transfer()->create();
+
+        $component = Livewire::test(Transactions::class)
+            ->call('create')
+            ->set('form.amount', '100');
+        $component->set('form.recurring_payment_id', (string) $savings->id)
+            ->set('form.kind', 'expense')
+            ->assertSet('form.recurring_payment_id', '');
+        $component->set('form.recurring_payment_id', (string) $savings->id)
+            ->set('form.kind', 'transfer_out')
+            ->set('form.kind', 'expense');
+
+        $this->assertSame('', $component->get('form.recurring_payment_id'));
+    }
+
+    public function test_an_unlinked_kind_mismatch_is_rejected_on_save(): void
+    {
+        BankAccount::factory()->create();
+        $savings = RecurringPayment::factory()->transfer()->create();
+
+        $component = Livewire::test(Transactions::class)->call('create');
+        $component->set('form.amount', '100');
+        $component->updateProperty('form.recurring_payment_id', (string) $savings->id);
+        $component->set('form.kind', 'transfer_out');
+        $component->set('form.recurring_payment_id', (string) $savings->id);
+        $component->set('form.kind', 'expense');
+        $component->call('save');
+
+        $this->assertDatabaseMissing('transactions', ['recurring_payment_id' => $savings->id, 'type' => 'expense']);
+    }
+
+    public function test_linked_transactions_show_a_recurring_marker(): void
+    {
+        $rent = RecurringPayment::factory()->create(['name' => 'Nájem']);
+        Transaction::factory()->forRecurring($rent)->create();
+
+        Livewire::test(Transactions::class)
+            ->assertSeeHtml('Pravidelná platba: Nájem');
     }
 }

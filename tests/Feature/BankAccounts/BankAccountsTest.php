@@ -205,7 +205,7 @@ class BankAccountsTest extends TestCase
 
         Livewire::test(BankAccounts::class)
             ->call('delete', $account->id)
-            ->assertSee('Účet má transakce, proto ho nelze smazat.');
+            ->assertSee('Účet je použitý v transakcích nebo pravidelných platbách, proto ho nelze smazat.');
 
         $this->assertModelExists($account);
     }
