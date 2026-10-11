@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'bank_account_id',
     'booked_on',
+    'posted_on',
     'amount',
     'type',
     'category_id',
@@ -27,6 +28,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'variable_symbol',
     'message',
     'note',
+    'is_hidden',
+    'bank_reference',
+    'import_key',
+    'statement_import_id',
     'source',
 ])]
 class Transaction extends Model
@@ -58,6 +63,8 @@ class Transaction extends Model
         return $this->belongsTo(RecurringPayment::class);
     }
 
+    public const HIDDEN_FIELDS = ['counterparty_name', 'counterparty_account', 'variable_symbol', 'message', 'note'];
+
     public function kind(): TransactionKind
     {
         return TransactionKind::of($this->type, $this->amount);
@@ -75,6 +82,8 @@ class Transaction extends Model
     {
         return [
             'booked_on' => 'date',
+            'posted_on' => 'date',
+            'is_hidden' => 'boolean',
             'amount' => 'integer',
             'type' => TransactionType::class,
             'source' => TransactionSource::class,

@@ -100,6 +100,16 @@ class Transactions extends Component
         $this->form_open = false;
     }
 
+    public function toggleHidden(int $id): void
+    {
+        $transaction = Transaction::query()->findOrFail($id);
+        $transaction->update(['is_hidden' => ! $transaction->is_hidden]);
+
+        if ($this->form->transaction_id === $id) {
+            $this->closeForm();
+        }
+    }
+
     public function delete(int $id): void
     {
         Transaction::query()->findOrFail($id)->delete();
@@ -129,6 +139,7 @@ class Transactions extends Component
             'kindOptions' => $this->kindOptions(),
             'formCategoryOptions' => $this->formCategoryOptions(),
             'formRecurringOptions' => $this->formRecurringOptions(),
+            'detailsLocked' => $this->form->detailsAreLocked(),
             'isTransfer' => TransactionKind::tryFrom($this->form->kind)?->isTransfer() ?? false,
         ]);
     }

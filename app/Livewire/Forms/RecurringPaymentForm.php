@@ -11,13 +11,18 @@ use App\Models\Category;
 use App\Models\RecurringPayment;
 use App\Money\Amount;
 use App\Rules\ValidAmount;
+use App\Transactions\TransactionFilter;
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Form;
 
 class RecurringPaymentForm extends Form
 {
     private const MONTH_FORMAT = 'Y-m';
+
+    private const MONTHS_IN_YEAR = 12;
 
     public ?int $payment_id = null;
 
@@ -29,7 +34,9 @@ class RecurringPaymentForm extends Form
 
     public string $frequency = 'monthly';
 
-    public string $start_month = '';
+    public string $payment_month = '';
+
+    public string $context_month = '';
 
     public string $end_month = '';
 
@@ -50,7 +57,7 @@ class RecurringPaymentForm extends Form
         $this->kind = $payment->kind->value;
         $this->amount = Amount::toInput($payment->amount);
         $this->frequency = $payment->frequency->value;
-        $this->start_month = $payment->start_month->format(self::MONTH_FORMAT);
+        $this->payment_month = (string) $payment->start_month->month;
         $this->end_month = $payment->end_month?->format(self::MONTH_FORMAT) ?? '';
         $this->due_day = (string) ($payment->due_day ?? '');
         $this->bank_account_id = (string) $payment->bank_account_id;
@@ -64,12 +71,22 @@ class RecurringPaymentForm extends Form
         $this->name = trim($this->name);
         $this->validate();
 
+        $startMonth = $this->startMonth(PaymentFrequency::from($this->frequency));
+
+        if ($this->end_month !== '' && $this->end_month.'-01' < $startMonth->toDateString()) {
+            throw ValidationException::withMessages([
+                'form.end_month' => __('The end month cannot be before the first payment in :month.', [
+                    'month' => $startMonth->locale(app()->getLocale())->isoFormat('MMMM YYYY'),
+                ]),
+            ]);
+        }
+
         $attributes = [
             'name' => $this->name,
             'kind' => TransactionKind::from($this->kind),
             'amount' => Amount::parse($this->amount) ?? 0,
             'frequency' => PaymentFrequency::from($this->frequency),
-            'start_month' => $this->start_month.'-01',
+            'start_month' => $startMonth->toDateString(),
             'end_month' => $this->end_month === '' ? null : $this->end_month.'-01',
             'due_day' => $this->due_day === '' ? null : (int) $this->due_day,
             'bank_account_id' => (int) $this->bank_account_id,
@@ -98,8 +115,14 @@ class RecurringPaymentForm extends Form
             'kind' => ['required', Rule::in(array_map(fn (TransactionKind $kind): string => $kind->value, RecurringPayment::KINDS))],
             'amount' => ['required', 'string', new ValidAmount],
             'frequency' => ['required', Rule::enum(PaymentFrequency::class)],
-            'start_month' => ['required', 'date_format:'.self::MONTH_FORMAT],
-            'end_month' => ['nullable', 'date_format:'.self::MONTH_FORMAT, 'after_or_equal:start_month'],
+            'payment_month' => [
+                Rule::requiredIf(fn (): bool => $this->frequency !== PaymentFrequency::Monthly->value),
+                'nullable',
+                'integer',
+                'min:1',
+                'max:'.self::MONTHS_IN_YEAR,
+            ],
+            'end_month' => ['nullable', 'date_format:'.self::MONTH_FORMAT],
             'due_day' => ['nullable', 'integer', 'min:1', 'max:31'],
             'bank_account_id' => ['required', Rule::exists('bank_accounts', 'id')->where(
                 fn ($query) => $query->where(fn ($scope) => $scope
@@ -126,6 +149,36 @@ class RecurringPaymentForm extends Form
         if ($category->archived_at !== null && $category->id !== $this->original()?->category_id) {
             $fail('validation.category_archived')->translate();
         }
+    }
+
+    private function startMonth(PaymentFrequency $frequency): CarbonImmutable
+    {
+        $original = $this->original();
+        $paymentMonth = (int) $this->payment_month;
+
+        if ($original !== null
+            && $original->frequency === $frequency
+            && ($frequency === PaymentFrequency::Monthly || $original->start_month->month === $paymentMonth)) {
+            return $original->start_month->toImmutable()->startOfMonth();
+        }
+
+        $context = TransactionFilter::parseMonth($this->context_month);
+
+        if ($frequency === PaymentFrequency::Monthly) {
+            return $context;
+        }
+
+        $interval = $frequency->months();
+
+        for ($offset = 0; $offset < self::MONTHS_IN_YEAR; $offset++) {
+            $month = $context->addMonthsNoOverflow($offset);
+
+            if ((($month->month - $paymentMonth) % $interval + $interval) % $interval === 0) {
+                return $month;
+            }
+        }
+
+        return $context;
     }
 
     private function original(): ?RecurringPayment

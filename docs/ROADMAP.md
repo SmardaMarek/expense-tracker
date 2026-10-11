@@ -75,31 +75,39 @@ Goal: record money by hand and see a basic monthly total.
 
 Goal: transactions come from bank statements instead of typing.
 
-### 2.0 PDF spike ⏳ *(needs a sample ČSOB statement with personal data blacked out)*
-- Throwaway check that `smalot/pdfparser` extracts rows correctly; otherwise try `pdftotext`.
-- List which fields the PDF contains (counterparty account, variable symbol, message).
-- **Done when:** the library choice is made and recorded in PROJECT.md.
+Banks in priority order: **ČSOB** (personal accounts) and **Air Bank** (shared account). PDF only.
 
-### 2.1 ČSOB PDF import ⏳
-- Upload a statement for a chosen account; parse deterministically.
-- **Checked against the statement's opening and closing balance**; a mismatch rejects the import
-  with a clear message.
-- Preview the parsed rows before saving.
-- The uploaded file is not kept after import.
-- **Done when:** a real statement imports with totals matching, and a tampered or unparsable
-  file is rejected.
+### 2.0 PDF spike ✅
+- `smalot/pdfparser` reading the plain text in reading order works for ČSOB (positional reading
+  jumbles page 1). Layout inspected with a masking script, so no real data left the computer.
 
-### 2.2 Duplicate protection ⏳
-- The same file cannot be imported twice; overlapping statements skip rows already present
-  (bank transaction ID when available, otherwise date + amount + counterparty + message).
-- **Decide:** the exact duplicate rule once the PDF fields are known.
+### 2.1 ČSOB PDF import ✅
+- "Import výpisu" page: upload, preview, confirm; the uploaded file is deleted afterwards.
+- `CsobStatementParser`: header (period, account, opening / closing balance) and rows spanning
+  several lines (type, counterparty, account, VS, message, card merchant, original currency).
+- Every row is checked against the running balance plus opening / closing balance
+  (`BalanceCheck`); a mismatch rejects the whole statement.
+- Card payments are dated by purchase; the bank posting date is kept as `posted_on`.
+- The statement is matched to a registered account by its number.
+- Verified on a real statement (63 rows, balances match) and in a real browser.
+- An import can be deleted from the history; it removes only the transactions that import
+  created, so the statement can be imported again.
 
-### 2.3 ČSOB CSV import ⏳
-- Second parser behind the same interface; fallback when a PDF layout changes.
+### 2.2 Duplicate protection ✅
+- Each imported row gets an import key (bank, account, posting date, bank reference, amount,
+  balance); rows already imported are skipped and shown as such in the preview.
+
+### Hidden payments ✅
+- Eye icon in the import preview and the transaction list, checkbox in the form; hidden details
+  never reach the page and are kept when editing. Optional PIN to reveal: later, if wanted.
+
+### 2.3 Air Bank PDF import 🔜 *(needs a sample Air Bank statement)*
+- Second parser behind the same `StatementParser` interface; bank detected automatically.
 
 ### 2.4 Transfer detection ⏳
-- On import: counterparty account matches an own account → transfer; otherwise an
-  opposite-sign, same-amount transaction on another own account within a few days → transfer.
+- ✅ On import: counterparty account matches an own account → transfer.
+- ⏳ Without a counterparty account: an opposite-sign, same-amount transaction on another own
+  account within a few days → transfer.
 - **Done when:** a contribution from a personal account to the shared one is recognized from
   either side and is excluded from income and expense totals.
 
@@ -111,7 +119,8 @@ Goal: most transactions are categorized automatically.
 
 ### 3.1 Recurring payments (fixed items)
 - ✅ "Pravidelné platby" page: name, kind (expense or outgoing transfer), amount,
-  frequency (monthly / quarterly / half-yearly / yearly) from a start month, optional end month,
+  frequency (monthly / quarterly / half-yearly / yearly) with a payment month for non-monthly
+  ones, optional end month,
   optional due day (missing 3 days after it), account, category, optional recipient account and match
   text.
 - ✅ Monthly status per payment: paid (with the actual amount), waiting, missing, not due

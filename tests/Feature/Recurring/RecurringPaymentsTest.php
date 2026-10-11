@@ -44,7 +44,7 @@ class RecurringPaymentsTest extends TestCase
 
         Livewire::test(RecurringPayments::class)
             ->call('create')
-            ->assertSet('form.start_month', '2026-10')
+            ->assertSet('form.payment_month', '10')
             ->assertSet('form.bank_account_id', (string) $account->id)
             ->set('form.name', 'Nájem')
             ->set('form.amount', '16 500')
@@ -117,8 +117,9 @@ class RecurringPaymentsTest extends TestCase
             'zero amount' => [['amount' => '0'], 'amount'],
             'due day 32' => [['due_day' => '32'], 'due_day'],
             'unknown frequency' => [['frequency' => 'weekly'], 'frequency'],
-            'end before start' => [['start_month' => '2026-10', 'end_month' => '2026-09'], 'end_month'],
-            'invalid start month' => [['start_month' => '2026-13'], 'start_month'],
+            'end before the first payment' => [['end_month' => '2026-09'], 'end_month'],
+            'yearly without a payment month' => [['frequency' => 'yearly', 'payment_month' => ''], 'payment_month'],
+            'payment month 13' => [['frequency' => 'yearly', 'payment_month' => '13'], 'payment_month'],
         ];
     }
 
@@ -156,12 +157,81 @@ class RecurringPaymentsTest extends TestCase
         Livewire::test(RecurringPayments::class)
             ->call('edit', $payment->id)
             ->assertSet('form.amount', '3000,00')
-            ->assertSet('form.start_month', '2026-01')
+            ->assertSet('form.payment_month', '1')
             ->set('form.amount', '3200')
             ->call('save')
             ->assertHasNoErrors();
 
         $this->assertSame(320_000, $payment->fresh()->amount);
+    }
+
+    public function test_editing_without_touching_the_schedule_keeps_the_start_month(): void
+    {
+        $payment = RecurringPayment::factory()->create(['start_month' => '2026-01-01']);
+
+        Livewire::test(RecurringPayments::class)
+            ->call('edit', $payment->id)
+            ->set('form.name', 'Přejmenováno')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('2026-01-01', $payment->fresh()->start_month->toDateString());
+    }
+
+    public function test_a_yearly_payment_starts_at_the_next_occurrence_of_its_month(): void
+    {
+        BankAccount::factory()->create();
+
+        Livewire::test(RecurringPayments::class)
+            ->call('create')
+            ->set('form.name', 'Pojištění auta')
+            ->set('form.amount', '9600')
+            ->set('form.frequency', 'yearly')
+            ->set('form.payment_month', '3')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('recurring_payments', ['name' => 'Pojištění auta', 'start_month' => '2027-03-01 00:00:00']);
+    }
+
+    public function test_a_quarterly_payment_starts_at_the_nearest_quarter_month(): void
+    {
+        BankAccount::factory()->create();
+
+        Livewire::test(RecurringPayments::class)
+            ->call('create')
+            ->set('form.name', 'Voda')
+            ->set('form.amount', '1500')
+            ->set('form.frequency', 'quarterly')
+            ->set('form.payment_month', '1')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('recurring_payments', ['name' => 'Voda', 'start_month' => '2026-10-01 00:00:00']);
+    }
+
+    public function test_changing_the_payment_month_moves_the_schedule(): void
+    {
+        $insurance = RecurringPayment::factory()->create(['frequency' => PaymentFrequency::Yearly, 'start_month' => '2026-03-01']);
+
+        Livewire::test(RecurringPayments::class)
+            ->call('edit', $insurance->id)
+            ->set('form.payment_month', '11')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('2026-11-01', $insurance->fresh()->start_month->toDateString());
+    }
+
+    public function test_the_payment_month_is_asked_only_for_non_monthly_payments(): void
+    {
+        BankAccount::factory()->create();
+
+        Livewire::test(RecurringPayments::class)
+            ->call('create')
+            ->assertDontSee('Měsíc platby')
+            ->set('form.frequency', 'yearly')
+            ->assertSee('Měsíc platby');
     }
 
     public function test_it_shows_each_payment_with_its_status_for_the_month(): void

@@ -36,13 +36,22 @@
                     <x-ui.select name="form.recurring_payment_id" :label="__('Recurring payment')" :options="$formRecurringOptions" live />
                     <p class="mt-1 text-xs text-slate-500">{{ __('Choosing one fills in its amount, account and category.') }}</p>
                 </div>
-                <x-ui.field name="form.counterparty_name" :label="__('Counterparty')" autocomplete="off" />
-                <x-ui.field name="form.counterparty_account" :label="__('Counterparty account')" autocomplete="off" />
-                <x-ui.field name="form.variable_symbol" :label="__('Variable symbol')" autocomplete="off" inputmode="numeric" />
+                @if ($detailsLocked)
+                    <div class="sm:col-span-2">
+                        <x-ui.alert variant="warning">{{ __('The recipient, message and note of this payment are hidden. Save it without hiding to see and edit them again.') }}</x-ui.alert>
+                    </div>
+                @else
+                    <x-ui.field name="form.counterparty_name" :label="__('Counterparty')" autocomplete="off" />
+                    <x-ui.field name="form.counterparty_account" :label="__('Counterparty account')" autocomplete="off" />
+                    <x-ui.field name="form.variable_symbol" :label="__('Variable symbol')" autocomplete="off" inputmode="numeric" />
+                    <div class="sm:col-span-2">
+                        <x-ui.field name="form.message" :label="__('Message')" autocomplete="off" />
+                    </div>
+                    <x-ui.field name="form.note" :label="__('Note')" autocomplete="off" />
+                @endif
                 <div class="sm:col-span-2">
-                    <x-ui.field name="form.message" :label="__('Message')" autocomplete="off" />
+                    <x-ui.checkbox name="form.is_hidden" :label="__('Hide the recipient and message (amount and category stay visible)')" />
                 </div>
-                <x-ui.field name="form.note" :label="__('Note')" autocomplete="off" />
 
                 <div class="flex gap-3 sm:col-span-2">
                     <x-ui.button>{{ __('Save') }}</x-ui.button>
@@ -86,8 +95,19 @@
                     <tbody class="divide-y divide-slate-100">
                         @foreach ($transactions as $transaction)
                             <tr wire:key="transaction-{{ $transaction->id }}">
-                                <td class="whitespace-nowrap px-4 py-3 text-slate-700">{{ $transaction->booked_on->format('j. n. Y') }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-slate-700">
+                                    {{ $transaction->booked_on->format('j. n. Y') }}
+                                    @if ($transaction->posted_on && ! $transaction->posted_on->equalTo($transaction->booked_on))
+                                        <div class="text-xs text-slate-500">{{ __('posted :date', ['date' => $transaction->posted_on->format('j. n.')]) }}</div>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3">
+                                    @if ($transaction->is_hidden)
+                                        <div class="flex items-center gap-1.5 font-medium italic text-slate-500">
+                                            <x-ui.icon name="eye-slash" class="h-4 w-4" />
+                                            {{ __('Hidden payment') }}
+                                        </div>
+                                    @else
                                     <div class="flex items-center gap-1.5 font-medium text-slate-900">
                                         {{ $transaction->counterparty_name ?? $transaction->message ?? '—' }}
                                         @if ($transaction->recurringPayment)
@@ -98,6 +118,7 @@
                                     </div>
                                     @if ($transaction->counterparty_name && $transaction->message)
                                         <div class="text-xs text-slate-500">{{ $transaction->message }}</div>
+                                    @endif
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-slate-700">
@@ -119,6 +140,12 @@
                                 ])>{{ $transaction->formatted_amount }}</td>
                                 <td class="px-4 py-3">
                                     <div class="flex justify-end gap-1.5">
+                                        <x-ui.icon-button
+                                            :icon="$transaction->is_hidden ? 'eye' : 'eye-slash'"
+                                            :label="$transaction->is_hidden ? __('Show recipient') : __('Hide recipient')"
+                                            wire:click="toggleHidden({{ $transaction->id }})"
+                                            :class="$transaction->is_hidden ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : ''"
+                                        />
                                         <x-ui.icon-button icon="edit" :label="__('Edit')" wire:click="edit({{ $transaction->id }})" />
                                         <x-ui.icon-button icon="delete" :label="__('Delete')" variant="danger" wire:click="delete({{ $transaction->id }})" wire:confirm="{{ __('Delete this transaction?') }}" />
                                     </div>

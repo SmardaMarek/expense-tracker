@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Statements\Parsers\CsobStatementParser;
+use App\Statements\PdfTextExtractor;
+use App\Statements\SmalotPdfTextExtractor;
+use App\Statements\StatementReader;
 use Collator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
@@ -11,7 +15,14 @@ use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->bind(PdfTextExtractor::class, SmalotPdfTextExtractor::class);
+        $this->app->bind(StatementReader::class, fn ($app): StatementReader => new StatementReader(
+            $app->make(PdfTextExtractor::class),
+            [new CsobStatementParser],
+        ));
+    }
 
     public function boot(): void
     {

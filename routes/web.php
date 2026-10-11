@@ -10,6 +10,7 @@ use App\Livewire\Categories;
 use App\Livewire\Dashboard;
 use App\Livewire\RecurringPayments;
 use App\Livewire\Settings;
+use App\Livewire\StatementImports;
 use App\Livewire\Transactions;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/transactions', Transactions::class)->name('transactions');
+    Route::get('/import', StatementImports::class)->name('import');
     Route::get('/recurring', RecurringPayments::class)->name('recurring');
     Route::get('/accounts', BankAccounts::class)->name('accounts');
     Route::get('/categories', Categories::class)->name('categories');

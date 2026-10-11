@@ -6,6 +6,7 @@ namespace Tests\Feature\Transactions;
 
 use App\Enums\TransactionSource;
 use App\Enums\TransactionType;
+use App\Livewire\Dashboard;
 use App\Livewire\Transactions;
 use App\Models\BankAccount;
 use App\Models\Category;
@@ -571,5 +572,99 @@ class TransactionsTest extends TestCase
 
         Livewire::test(Transactions::class)
             ->assertSeeHtml('Pravidelná platba: Nájem');
+    }
+
+    public function test_a_hidden_transaction_does_not_reveal_its_recipient(): void
+    {
+        Transaction::factory()->create(['counterparty_name' => 'Zlatnictví Šperk', 'message' => 'Prsten', 'is_hidden' => true, 'amount' => -2_500_000]);
+
+        Livewire::test(Transactions::class)
+            ->assertSee('Skrytá platba')
+            ->assertSee("25\u{00A0}000,00\u{00A0}Kč", false)
+            ->assertDontSeeHtml('Zlatnictví')
+            ->assertDontSeeHtml('Prsten');
+    }
+
+    public function test_the_eye_icon_hides_and_reveals_a_transaction(): void
+    {
+        $transaction = Transaction::factory()->create(['counterparty_name' => 'Zlatnictví Šperk']);
+
+        $component = Livewire::test(Transactions::class)->call('toggleHidden', $transaction->id);
+        $this->assertTrue($transaction->fresh()->is_hidden);
+        $component->assertDontSeeHtml('Zlatnictví');
+
+        $component->call('toggleHidden', $transaction->id);
+        $this->assertFalse($transaction->fresh()->is_hidden);
+        $component->assertSee('Zlatnictví Šperk');
+    }
+
+    public function test_editing_a_hidden_transaction_keeps_its_details_out_of_the_page_and_the_database_intact(): void
+    {
+        $transaction = Transaction::factory()->create([
+            'counterparty_name' => 'Zlatnictví Šperk',
+            'counterparty_account' => '19-2000145399/0800',
+            'message' => 'Prsten',
+            'note' => 'Výročí',
+            'is_hidden' => true,
+            'amount' => -2_500_000,
+        ]);
+
+        Livewire::test(Transactions::class)
+            ->call('edit', $transaction->id)
+            ->assertSet('form.counterparty_name', '')
+            ->assertSet('form.message', '')
+            ->assertDontSeeHtml('Zlatnictví')
+            ->assertSee('Příjemce, zpráva a poznámka této platby jsou skryté')
+            ->set('form.amount', '26000')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $transaction->refresh();
+        $this->assertSame(-2_600_000, $transaction->amount);
+        $this->assertSame('Zlatnictví Šperk', $transaction->counterparty_name);
+        $this->assertSame('19-2000145399/0800', $transaction->counterparty_account);
+        $this->assertSame('Prsten', $transaction->message);
+        $this->assertSame('Výročí', $transaction->note);
+        $this->assertTrue($transaction->is_hidden);
+    }
+
+    public function test_unhiding_through_the_form_keeps_the_details(): void
+    {
+        $transaction = Transaction::factory()->create(['counterparty_name' => 'Zlatnictví Šperk', 'message' => 'Prsten', 'is_hidden' => true]);
+
+        Livewire::test(Transactions::class)
+            ->call('edit', $transaction->id)
+            ->set('form.is_hidden', false)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSee('Zlatnictví Šperk');
+
+        $this->assertFalse($transaction->fresh()->is_hidden);
+        $this->assertSame('Prsten', $transaction->fresh()->message);
+    }
+
+    public function test_a_new_transaction_can_be_saved_as_hidden(): void
+    {
+        BankAccount::factory()->create();
+
+        Livewire::test(Transactions::class)
+            ->call('create')
+            ->set('form.amount', '1999')
+            ->set('form.counterparty_name', 'Parfumerie')
+            ->set('form.is_hidden', true)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDontSeeHtml('Parfumerie');
+
+        $this->assertDatabaseHas('transactions', ['counterparty_name' => 'Parfumerie', 'is_hidden' => true]);
+    }
+
+    public function test_hidden_transactions_still_count_in_the_dashboard_totals(): void
+    {
+        $account = BankAccount::factory()->create();
+        Transaction::factory()->forAccount($account)->create(['amount' => -2_500_000, 'is_hidden' => true]);
+
+        Livewire::test(Dashboard::class)
+            ->assertViewHas('summary', fn ($summary) => $summary->current->expenses === 2_500_000);
     }
 }

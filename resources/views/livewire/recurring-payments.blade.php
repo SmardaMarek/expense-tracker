@@ -29,11 +29,13 @@
                 <x-ui.field name="form.name" :label="__('Name')" autocomplete="off" placeholder="{{ __('e.g. Rent') }}" />
                 <x-ui.select name="form.kind" :label="__('Kind')" :options="$kindOptions" live />
                 <x-ui.field name="form.amount" :label="__('Amount (CZK)')" autocomplete="off" inputmode="decimal" placeholder="16 500" />
-                <x-ui.select name="form.frequency" :label="__('Frequency')" :options="$frequencyOptions" />
-                <div>
-                    <x-ui.field name="form.start_month" type="month" :label="__('From month')" />
-                    <p class="mt-1 text-xs text-slate-500">{{ __('For quarterly and yearly payments, the first month it is paid.') }}</p>
-                </div>
+                <x-ui.select name="form.frequency" :label="__('Frequency')" :options="$frequencyOptions" live />
+                @if ($form->frequency !== 'monthly')
+                    <div>
+                        <x-ui.select name="form.payment_month" :label="__('Payment month')" :options="$monthOptions" />
+                        <p class="mt-1 text-xs text-slate-500">{{ __('The month it is paid in. Quarterly and half-yearly payments repeat from it.') }}</p>
+                    </div>
+                @endif
                 <x-ui.field name="form.end_month" type="month" :label="__('Until month (optional)')" />
                 <div>
                     <x-ui.field name="form.due_day" type="number" min="1" max="31" :label="__('Due day (optional)')" />

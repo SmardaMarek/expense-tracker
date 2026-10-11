@@ -75,6 +75,15 @@ is reported on its own.
    between accounts, and missing fixed payments.
 6. **Excel export.** A monthly `.xlsx` report with fixed and variable costs in separate sections.
 
+## Hidden payments
+
+Both people share one login, so a payment can be marked hidden (e.g. a present). A hidden
+payment shows as "Skrytá platba": its recipient, account, variable symbol, message and note are
+not displayed or sent to the page; amount, date, account and category stay visible and count in
+all totals. It can be hidden in the import preview (eye icon per row) or at any time in the
+transaction list and form. This is privacy by courtesy, not security: anyone using the app can
+reveal it (a PIN may be added later).
+
 ## Savings and investments
 
 Transfer categories can carry a purpose: savings deposit, savings withdrawal or investment.
@@ -96,8 +105,8 @@ The user maintains a list of recurring payments ("Pravidelné platby"). Each ite
 - a name (Rent, Netflix, Electricity, Savings)
 - a kind: expense, or outgoing transfer (e.g. a standing order to savings)
 - an expected amount
-- a frequency (monthly, quarterly, half-yearly, yearly) counted from a start month, and an
-  optional end month
+- a frequency (monthly, quarterly, half-yearly, yearly); non-monthly payments also have the
+  month they are paid in; an optional end month
 - an optional due day (the payment shows as missing 3 days after it); without a due day it may be
   paid any time in the month (typical for transfers)
 - the account it is paid from, a category, an optional recipient account number (e.g. the
@@ -153,7 +162,7 @@ Confidence handling:
 | Background work | No separate worker process | Import and AI categorization run in batches while the import page is open, with progress shown, so nothing extra has to be started. |
 | Excel export | PHP library, to be chosen | Decide when building the export. |
 | Charts | **Apache ECharts** (Apache-2.0), bundled through Vite | Interactive donut, trend and sankey charts; only the used modules are imported. No CDN. ApexCharts was rejected because of its 2025 licence change. |
-| Statement parsing | ČSOB PDF (primary), CSV (fallback) | Deterministic parsing with a PHP PDF library (candidate: `smalot/pdfparser`). Every import is checked against the statement's opening and closing balance. Pluggable parsers per bank and format. |
+| Statement parsing | **PDF: ČSOB done, Air Bank next** | Deterministic parsing of the PDF text with `smalot/pdfparser` (LGPL-3.0). Every row is checked against the running balance and the opening / closing balance. One parser per bank behind `StatementParser`. |
 
 ## Decisions
 
@@ -171,13 +180,8 @@ Confidence handling:
 
 ## Open decisions
 
-1. **Statement parsing.** ČSOB provides PDF by default; CSV is also available. PDF is
-   preferred, to be verified on a real sample statement. Biggest technical risk.
+1. **Air Bank statement layout.** Needs a sample PDF before its parser can be written.
 2. **AI provider.** Must be free. Local model keeps data on the machine but is heavy on a
    personal computer; free hosted tiers receive transaction text and may use it for training.
    Optionally strip account numbers and names before sending. Performance of local models to
    be tested.
-3. **PDF library.** Verify `smalot/pdfparser` on a real statement; fall back to `pdftotext`
-   (poppler) if layout reconstruction is poor.
-4. **Duplicate handling.** To be discussed. Proposed: detect and skip duplicates on overlapping
-   statements.

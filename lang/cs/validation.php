@@ -15,10 +15,13 @@ return [
     'after_or_equal' => 'Pole :attribute musí být stejné nebo pozdější než :date.',
     'in' => 'Vybraná hodnota pole :attribute je neplatná.',
     'integer' => 'Pole :attribute musí být celé číslo.',
+    'file' => 'Pole :attribute musí být soubor.',
     'max' => [
+        'file' => 'Soubor :attribute může mít nejvýše :max kB.',
         'numeric' => 'Pole :attribute může být nejvýše :max.',
         'string' => 'Pole :attribute může mít nejvýše :max znaků.',
     ],
+    'mimes' => 'Soubor :attribute musí být typu :values.',
     'min' => [
         'numeric' => 'Pole :attribute musí být alespoň :min.',
         'string' => 'Pole :attribute musí mít alespoň :min znaků.',
@@ -44,7 +47,7 @@ return [
         'form.match_text' => 'rozpoznávací text',
         'form.name' => 'název',
         'form.recurring_payment_id' => 'pravidelná platba',
-        'form.start_month' => 'od měsíce',
+        'form.payment_month' => 'měsíc platby',
         'form.bank_account_id' => 'bankovní účet',
         'form.booked_on' => 'datum',
         'form.category_id' => 'kategorie',
@@ -59,5 +62,6 @@ return [
         'password' => 'heslo',
         'password_confirmation' => 'potvrzení hesla',
         'second_name' => 'druhá osoba',
+        'statement' => 'výpis',
     ],
 ];

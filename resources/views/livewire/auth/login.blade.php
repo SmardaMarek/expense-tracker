@@ -5,10 +5,7 @@
         <x-ui.field name="email" type="email" :label="__('Email')" autocomplete="username" />
         <x-ui.field name="password" type="password" :label="__('Password')" autocomplete="current-password" />
 
-        <label class="flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" wire:model="remember" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-            {{ __('Remember me') }}
-        </label>
+        <x-ui.checkbox name="remember" :label="__('Remember me')" />
 
         <x-ui.button class="w-full">{{ __('Sign in') }}</x-ui.button>
     </form>

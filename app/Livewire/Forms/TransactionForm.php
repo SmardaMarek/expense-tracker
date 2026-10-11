@@ -42,6 +42,8 @@ class TransactionForm extends Form
 
     public string $note = '';
 
+    public bool $is_hidden = false;
+
     public function fillFrom(Transaction $transaction): void
     {
         $this->transaction_id = $transaction->id;
@@ -51,6 +53,12 @@ class TransactionForm extends Form
         $this->amount = Amount::toInput($transaction->amount);
         $this->category_id = (string) ($transaction->category_id ?? '');
         $this->recurring_payment_id = (string) ($transaction->recurring_payment_id ?? '');
+        $this->is_hidden = $transaction->is_hidden;
+
+        if ($transaction->is_hidden) {
+            return;
+        }
+
         $this->counterparty_name = $transaction->counterparty_name ?? '';
         $this->counterparty_account = $transaction->counterparty_account ?? '';
         $this->variable_symbol = $transaction->variable_symbol ?? '';
@@ -75,6 +83,7 @@ class TransactionForm extends Form
             'variable_symbol' => self::nullIfBlank($this->variable_symbol),
             'message' => self::nullIfBlank($this->message),
             'note' => self::nullIfBlank($this->note),
+            'is_hidden' => $this->is_hidden,
         ];
 
         if ($this->transaction_id === null) {
@@ -82,6 +91,11 @@ class TransactionForm extends Form
         }
 
         $transaction = Transaction::query()->findOrFail($this->transaction_id);
+
+        if ($transaction->is_hidden) {
+            $attributes = array_diff_key($attributes, array_flip(Transaction::HIDDEN_FIELDS));
+        }
+
         $transaction->update($attributes);
 
         return $transaction;
@@ -125,6 +139,11 @@ class TransactionForm extends Form
         if ($category->archived_at !== null && $category->id !== $this->original()?->category_id) {
             $fail('validation.category_archived')->translate();
         }
+    }
+
+    public function detailsAreLocked(): bool
+    {
+        return $this->original()?->is_hidden ?? false;
     }
 
     public function applyRecurringPayment(RecurringPayment $payment): void

@@ -15,6 +15,7 @@ use App\Models\RecurringPayment;
 use App\Recurring\RecordPayment;
 use App\Recurring\RecurringOverview;
 use App\Recurring\RecurringState;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -31,7 +32,8 @@ class RecurringPayments extends Component
     public function create(): void
     {
         $this->closeForm();
-        $this->form->start_month = $this->selectedMonth()->format('Y-m');
+        $this->form->context_month = $this->selectedMonth()->format('Y-m');
+        $this->form->payment_month = (string) $this->selectedMonth()->month;
         $this->form->bank_account_id = (string) (BankAccount::query()->active()->get(['id', 'name'])->sortByLocale('name')->first()?->id ?? '');
         $this->form_open = true;
     }
@@ -40,6 +42,7 @@ class RecurringPayments extends Component
     {
         $this->closeForm();
         $this->form->fillFrom(RecurringPayment::query()->findOrFail($id));
+        $this->form->context_month = $this->selectedMonth()->format('Y-m');
         $this->form_open = true;
     }
 
@@ -113,6 +116,9 @@ class RecurringPayments extends Component
             'monthlyTransfers' => $active->where('kind', TransactionKind::TransferOut)->sum(fn (RecurringPayment $payment): int => $payment->monthlyEquivalent()),
             'statusCounts' => collect($states)->countBy(fn (RecurringState $state): string => $state->status->value)->all(),
             'kindOptions' => collect(RecurringPayment::KINDS)->mapWithKeys(fn (TransactionKind $kind): array => [$kind->value => $kind->label()])->all(),
+            'monthOptions' => collect(range(1, 12))
+                ->mapWithKeys(fn (int $month): array => [$month => CarbonImmutable::create(2000, $month, 1)->locale(app()->getLocale())->isoFormat('MMMM')])
+                ->all(),
             'frequencyOptions' => collect(PaymentFrequency::cases())->mapWithKeys(fn (PaymentFrequency $frequency): array => [$frequency->value => $frequency->label()])->all(),
             'accountOptions' => $this->accountOptions(),
             'categoryOptions' => $this->categoryOptions(),

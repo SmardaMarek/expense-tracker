@@ -1,0 +1,65 @@
+VÝPIS Z ÚČTU
+Československá obchodní banka, a. s., Radlická 333/150, 150 57 Praha 5; IČO: 00001350
+Období:
+1. 9. 2026 - 30. 9. 2026
+Účet:
+123456789/0300
+Název účtu:
+JAN TESTOVACI
+IBAN:	CZ00 0300 0000 0001 2345 6789
+Typ účtu:	Plus Konto
+Měna:	CZK
+Počet příchozích položek:  	1
+Počet odchozích položek:  	5
+Počáteční zůstatek:	10 000,00
+Konečný zůstatek:	34 894,54
+Celkové příjmy:	45 000,00
+Celkové výdaje:	20 105,46
+Přehled pohybů na účtu od 1. 9. 2026 do 30. 9. 2026
+Datum
+Valuta
+Označení platby
+Protiúčet nebo poznámka
+Název protiúčtu
+VS	KS SS
+Identifikace Částka Zůstatek
+02.09.Odchozí úhrada okamžitá  	10001 -1 500,00 8 500,00
+2000145399/0800	123456	0308
+Najem zari
+03.09.Transakce platební kartou  	10002 -1 234,56 7 265,44
+123456789 01234567890123
+Místo: ALBERT 1234 PRAHA
+Částka: 1234.56 CZK 01.09.2026
+Praha
+05.09.Transakce platební kartou  	10003 -25,90 7 239,54
+123456789 01234567890123
+Místo: SPOTIFY.COM*123a456789
+Částka: 1.10 EUR 04.09.2026
+Stockholm
+10.09.Příchozí úhrada  	Zaměstnavatel s.r.o. 	10004 45 000,00 52 239,54
+1234567890/0100	2026	0138
+9/2026 - Mzda Jan Testovaci - Zari 9
+Strana: 1/2
+Období: 1. 9. 2026 - 30. 9. 2026
+Účet: 123456789/0300
+Název účtu:JAN TESTOVACI
+Datum
+Valuta
+Označení platby
+Protiúčet nebo poznámka
+Název protiúčtu
+VS	KS SS
+Identifikace Částka Zůstatek
+15.09.Trvalý příkaz elektronicky 362 Nadace Test, o.p.s.	10005 -5 000,00 47 239,54
+19-2000145399/0800	11111111
+30.09.Transakce platební kartou  	10006 -12 345,00 34 894,54
+123456789 01234567890123
+Místo: IKEA PRAHA
+Částka: 12345 CZK 28.09.2026
+Praha
+Platby kartou jsou uvedeny v měně účtu. V případě zahraniční transakce je uvedena i původní částka a měna transakce podle kurzu karetní asociace.
+Vklad na tomto účtu je pojištěn v souladu se zákonem. Bližší informace naleznete na internetových stránkách banky.
+Strana: 2/2
+Období: 1. 9. 2026 - 30. 9. 2026
+Účet: 123456789/0300
+Název účtu:JAN TESTOVACIVÝPIS Z ÚČTU Československá obchodní banka, a. s., Radlická 333/150, 150 57 Praha 5

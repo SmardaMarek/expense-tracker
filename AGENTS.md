@@ -49,7 +49,8 @@ php artisan app:reset-password    # set a new password for the single account
   area, e.g. `app/Statements/` for statement parsers.
 - **Shared UI lives in Blade components** under `resources/views/components/ui/`
   (`x-ui.field`, `x-ui.select`, `x-ui.button` with variants and `href`, `x-ui.card`,
-  `x-ui.alert`, `x-ui.nav-link`, `x-ui.icon-button` for row actions with an accessible label). Reuse them; add a new one instead of copying utility classes
+  `x-ui.alert`, `x-ui.nav-link`, `x-ui.icon-button` for row actions with an accessible label,
+  `x-ui.checkbox`, `x-ui.file-input`, `x-ui.sortable-header` + `x-ui.pagination` for tables). Reuse them; add a new one instead of copying utility classes
   between views.
 - Format money only through `App\Money\Amount` (parse input, format for display) so amounts look
   the same everywhere.
@@ -105,8 +106,16 @@ php artisan app:reset-password    # set a new password for the single account
 ## Privacy and security
 
 - The app runs locally and is reached only from the same computer.
+- **Hidden payments** (`transactions.is_hidden`): never show `Transaction::HIDDEN_FIELDS`
+  (recipient, account, variable symbol, message, note) anywhere — lists, forms, exports, charts
+  — and never send them to the browser. Amount, date, account and category stay visible and
+  count in all totals.
 - **Never commit real financial data**: statements, exports, SQLite files, `.env`. Test fixtures
-  must use invented data.
+  must use invented data (see `tests/Fixtures/Statements/`).
+- **Never read real statements into the conversation.** To learn a bank's layout, run a local
+  script that masks every letter and digit (keeping only generic banking labels) and print only
+  the masked text or aggregate counts. Sample statements live in `storage/app/private/example`
+  (git-ignored).
 - The only outbound network traffic allowed at runtime is to the configured AI provider.
 - Rely on Eloquent and query bindings; never interpolate input into raw SQL.
 
